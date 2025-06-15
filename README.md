@@ -78,4 +78,45 @@ python manage.py runserver
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## GitHub Workflow & Collaboration
+
+This project follows best practices for open-source collaboration:
+
+- **Issues:** Use GitHub Issues to report bugs, request features, or ask questions. Apply appropriate labels (e.g., `bug`, `enhancement`, `documentation`, `frontend`, `backend`, `priority:high`, etc.) to help organize and prioritize work.
+- **Labels:** Labels help categorize issues and pull requests. See the Issues tab for available labels.
+- **Milestones:** Milestones group issues and pull requests by project goals or releases (e.g., `v1.0.0`, `Documentation Sprint`). Assign issues to milestones to track progress.
+- **Project Boards:** Use GitHub Projects to visualize and manage tasks. Boards like "Current Sprint" or "Bug Tracking" help organize work into columns (To Do, In Progress, Review, Done).
+
+## Commit Message Convention
+
+We use the [Conventional Commits](https://www.conventionalcommits.org/) standard to make commit history readable and automate changelog generation. Example:
+
+```
+feat(frontend): add dark mode toggle
+fix(backend): correct budget calculation bug
+docs: update API usage in README
+```
+
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes
+- `refactor`: Code refactoring
+- `test`: Adding tests
+- `chore`: Maintenance tasks
+
+## Versioning & Changelog
+
+This project uses [Semantic Versioning](https://semver.org/):
+- **MAJOR** version when you make incompatible API changes
+- **MINOR** version when you add functionality in a backwards-compatible manner
+- **PATCH** version when you make backwards-compatible bug fixes
+
+All changes are tracked in [CHANGELOG.md](CHANGELOG.md). Update the changelog for every significant change.
+
+## How to Contribute
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on contributing, including development setup, commit conventions, and pull request process. 

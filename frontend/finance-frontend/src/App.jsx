@@ -5,6 +5,9 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/layout/Header';
 import { Toaster } from 'react-hot-toast';
 import { TransactionProvider } from './contexts/TransactionContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { LoginForm } from './components/auth/LoginForm';
+import { BudgetsProvider } from './contexts/BudgetsContext';
 
 // Pages
 import Login from './pages/auth/Login';
@@ -17,31 +20,6 @@ import Transactions from './pages/transactions/Transactions';
 import Budget from './pages/budget/Budget';
 import Reports from './pages/reports/Reports';
 
-// Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      <Header />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
-      </main>
-    </div>
-  );
-};
 
 const App = () => {
   return (
@@ -60,6 +38,7 @@ const App = () => {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
+                    <Header />
                     <Dashboard />
                   </ProtectedRoute>
                 }
@@ -68,6 +47,7 @@ const App = () => {
                 path="/profile"
                 element={
                   <ProtectedRoute>
+                    <Header />
                     <Profile />
                   </ProtectedRoute>
                 }
@@ -76,6 +56,7 @@ const App = () => {
                 path="/settings"
                 element={
                   <ProtectedRoute>
+                    <Header />
                     <Settings />
                   </ProtectedRoute>
                 }
@@ -84,6 +65,7 @@ const App = () => {
                 path="/transactions"
                 element={
                   <ProtectedRoute>
+                    <Header />
                     <Transactions />
                   </ProtectedRoute>
                 }
@@ -92,7 +74,10 @@ const App = () => {
                 path="/budget"
                 element={
                   <ProtectedRoute>
-                    <Budget />
+                    <Header />
+                    <BudgetsProvider>
+                      <Budget />
+                    </BudgetsProvider>
                   </ProtectedRoute>
                 }
               />
@@ -100,6 +85,7 @@ const App = () => {
                 path="/reports"
                 element={
                   <ProtectedRoute>
+                    <Header />
                     <Reports />
                   </ProtectedRoute>
                 }
