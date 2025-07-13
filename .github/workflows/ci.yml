@@ -45,3 +45,5 @@ jobs:
       run: |
         cd frontend/finance-frontend
         npm run build 
+      env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
