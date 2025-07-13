@@ -2,14 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const Table = ({ columns, data, onRowClick }) => (
-  <div className="overflow-x-auto rounded-xl shadow bg-[var(--color-card)] border border-[var(--color-border)] transition-colors">
-    <table className="min-w-full divide-y divide-[var(--color-border)]">
+  <div className="overflow-x-auto rounded-xl shadow bg-[var(--color-card)] border border-[var(--color-border)] transition-colors w-full">
+    <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
       <thead>
         <tr>
           {columns.map((col) => (
             <th
               key={col.key}
-              className="px-4 py-2 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider bg-[var(--color-surface)]"
+              className="px-4 py-2 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider bg-[var(--color-surface)] whitespace-nowrap"
             >
               {col.title}
             </th>

@@ -19,12 +19,15 @@ const Transactions = () => {
     updateTransaction, 
     deleteTransaction 
   } = useTransactions();
+  
+  // Debug logging
+  console.log('Transactions component - context data:', { transactions, loading });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [filters, setFilters] = useState({
     searchQuery: '',
-    dateRange: getCurrentMonthRange(),
+    dateRange: { start: '2024-01-01', end: '2025-12-31' }, // Show all transactions from 2024-2025
     category: '',
     type: '',
   });
@@ -60,8 +63,8 @@ const Transactions = () => {
       ...selectedData.map(t => [
         t.date,
         t.description,
-        t.category,
-        t.type,
+        typeof t.category === 'object' ? t.category?.name || '' : `Category ${t.category}`,
+        t.transaction_type,
         t.amount
       ])
     ].map(row => row.join(',')).join('\n');
@@ -77,15 +80,38 @@ const Transactions = () => {
     document.body.removeChild(link);
   };
 
-  const filteredTransactions = transactions
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+  
+  // Debug logging
+  console.log('Raw transactions:', safeTransactions);
+  console.log('Current filters:', filters);
+  
+  const filteredTransactions = safeTransactions
     .filter(t => {
+      const categoryName = typeof t.category === 'object' ? t.category?.name || '' : `Category ${t.category}`;
       const matchesSearch = t.description.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-                          t.category.toLowerCase().includes(filters.searchQuery.toLowerCase());
-      const matchesCategory = !filters.category || t.category === filters.category;
-      const matchesType = !filters.type || t.type === filters.type;
+                          categoryName.toLowerCase().includes(filters.searchQuery.toLowerCase());
+      const matchesCategory = !filters.category || 
+                            (typeof t.category === 'object' ? t.category?.id === filters.category : t.category === filters.category);
+      const matchesType = !filters.type || t.transaction_type === filters.type;
       const matchesDateRange = filterByDateRange(t, filters.dateRange.start, filters.dateRange.end);
+      
+      // Debug logging for each transaction
+      console.log(`Transaction ${t.id}:`, {
+        description: t.description,
+        date: t.date,
+        category: categoryName,
+        type: t.transaction_type,
+        matchesSearch,
+        matchesCategory,
+        matchesType,
+        matchesDateRange
+      });
+      
       return matchesSearch && matchesCategory && matchesType && matchesDateRange;
     });
+  
+  console.log('Filtered transactions:', filteredTransactions);
 
   const sortedTransactions = sortTransactions(
     filteredTransactions,
@@ -120,7 +146,7 @@ const Transactions = () => {
         onTypeChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
         onReset={() => setFilters({
           searchQuery: '',
-          dateRange: getCurrentMonthRange(),
+          dateRange: { start: '2024-01-01', end: '2025-12-31' }, // Show all transactions from 2024-2025
           category: '',
           type: '',
         })}

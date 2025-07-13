@@ -5,4 +5,6 @@ export const budgetsAPI = {
   create: async (data) => (await axiosInstance.post('/budgets/budgets/', data)).data,
   update: async (id, data) => (await axiosInstance.put(`/budgets/budgets/${id}/`, data)).data,
   delete: async (id) => (await axiosInstance.delete(`/budgets/budgets/${id}/`)).data,
+  // Fetch budget categories for a given budget
+  getCategories: async (budgetId) => (await axiosInstance.get(`/budgets/budget-categories/?budget=${budgetId}`)).data,
 }; 

@@ -1,22 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Button from '../Button/Button';
-
-const defaultCategories = [
-  { id: 'housing', name: 'Housing' },
-  { id: 'food', name: 'Food' },
-  { id: 'transportation', name: 'Transportation' },
-  { id: 'utilities', name: 'Utilities' },
-  { id: 'entertainment', name: 'Entertainment' },
-  { id: 'healthcare', name: 'Healthcare' },
-  { id: 'education', name: 'Education' },
-  { id: 'shopping', name: 'Shopping' },
-  { id: 'salary', name: 'Salary' },
-  { id: 'investment', name: 'Investment' },
-  { id: 'other', name: 'Other' },
-];
+import api from '../../../api/config';
 
 const schema = yup.object().shape({
   amount: yup
@@ -36,30 +23,77 @@ const schema = yup.object().shape({
     .date()
     .required('Date is required')
     .max(new Date(), 'Date cannot be in the future'),
-  type: yup
+  transaction_type: yup
     .string()
     .required('Transaction type is required')
-    .oneOf(['income', 'expense'], 'Invalid transaction type'),
+    .oneOf(['INCOME', 'EXPENSE'], 'Invalid transaction type'),
 });
 
-const TransactionForm = ({ onSubmit, initialData = {}, categories = defaultCategories, onCancel }) => {
+const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
-      type: 'expense',
+      transaction_type: 'EXPENSE',
       ...initialData,
+      // Ensure category is set to id if initialData.category is an object
+      category: initialData?.category?.id || initialData?.category || '',
     },
   });
 
+  // If initialData changes (edit mode), update the form values
+  useEffect(() => {
+    if (initialData && initialData.id) {
+      reset({
+        ...initialData,
+        category: initialData?.category?.id || initialData?.category || '',
+      });
+    }
+  }, [initialData, reset]);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          const response = await api.get('/transactions/categories/');
+          setCategories(response.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const handleFormSubmit = async (data) => {
+    if (!data.category) {
+      alert('Please select a category');
+      return;
+    }
     try {
-      await onSubmit(data);
+      // Transform data to match backend expectations
+      const transformedData = {
+        ...data,
+        date: new Date(data.date).toISOString().split('T')[0],
+        category_id: Number(data.category), // Send category_id for backend
+        transaction_type: data.transaction_type,
+      };
+      delete transformedData.category; // Remove category field
+      await onSubmit(transformedData);
       reset();
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -69,18 +103,18 @@ const TransactionForm = ({ onSubmit, initialData = {}, categories = defaultCateg
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div>
-        <label htmlFor="type" className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="transaction_type" className="block text-sm font-medium text-[var(--color-text)]">
           Type
         </label>
         <select
-          {...register('type')}
+          {...register('transaction_type')}
           className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
         >
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
+          <option value="EXPENSE">Expense</option>
+          <option value="INCOME">Income</option>
         </select>
-        {errors.type && (
-          <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
+        {errors.transaction_type && (
+          <p className="mt-1 text-sm text-red-500">{errors.transaction_type.message}</p>
         )}
       </div>
 
@@ -125,8 +159,9 @@ const TransactionForm = ({ onSubmit, initialData = {}, categories = defaultCateg
           Category
         </label>
         <select
-          {...register('category')}
+          {...register('category', { required: true })}
           className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          disabled={loadingCategories}
         >
           <option value="">Select a category</option>
           {categories.map((category) => (
@@ -169,9 +204,9 @@ const TransactionForm = ({ onSubmit, initialData = {}, categories = defaultCateg
           type="submit"
           variant="primary"
           className="flex-1"
-          disabled={isSubmitting}
+          disabled={isSubmitting || loadingCategories}
         >
-          {isSubmitting ? 'Saving...' : initialData.id ? 'Update Transaction' : 'Add Transaction'}
+          {isSubmitting ? 'Saving...' : (initialData && initialData.id) ? 'Update Transaction' : 'Add Transaction'}
         </Button>
       </div>
     </form>

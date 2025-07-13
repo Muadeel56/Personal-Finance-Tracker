@@ -41,11 +41,14 @@ export const getPreviousMonthRange = () => {
 // Group transactions by category
 export const groupByCategory = (transactions) => {
   return transactions.reduce((acc, transaction) => {
-    const { category, amount } = transaction;
-    if (!acc[category]) {
-      acc[category] = 0;
+    const categoryName = typeof transaction.category === 'object' 
+      ? transaction.category?.name || 'Uncategorized'
+      : `Category ${transaction.category}`;
+    const amount = transaction.amount;
+    if (!acc[categoryName]) {
+      acc[categoryName] = 0;
     }
-    acc[category] += amount;
+    acc[categoryName] += amount;
     return acc;
   }, {});
 };
@@ -53,21 +56,21 @@ export const groupByCategory = (transactions) => {
 // Calculate total income from transactions
 export const calculateTotalIncome = (transactions) => {
   return transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter(t => t.transaction_type === 'INCOME')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 };
 
 // Calculate total expenses from transactions
 export const calculateTotalExpenses = (transactions) => {
   return Math.abs(transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0));
+    .filter(t => t.transaction_type === 'EXPENSE')
+    .reduce((sum, t) => sum + Number(t.amount), 0));
 };
 
 // Calculate net balance (income - expenses)
 export const calculateNetBalance = (transactions) => {
   return transactions.reduce((sum, t) => {
-    return sum + (t.type === 'income' ? t.amount : -t.amount);
+    return sum + (t.transaction_type === 'INCOME' ? Number(t.amount) : -Number(t.amount));
   }, 0);
 };
 
@@ -82,7 +85,12 @@ export const filterByDateRange = (transaction, startDate, endDate) => {
   const transactionDate = typeof transaction.date === 'string' 
     ? parseISO(transaction.date) 
     : transaction.date;
-  return transactionDate >= startDate && transactionDate <= endDate;
+  
+  // Parse start and end dates if they are strings
+  const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+  const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+  
+  return transactionDate >= start && transactionDate <= end;
 };
 
 // Sort transactions by field
@@ -90,6 +98,12 @@ export const sortTransactions = (transactions, field, direction) => {
   return [...transactions].sort((a, b) => {
     let aValue = a[field];
     let bValue = b[field];
+
+    // Handle category field (sort by category name)
+    if (field === 'category') {
+      aValue = typeof a.category === 'object' ? a.category?.name || '' : `Category ${a.category}`;
+      bValue = typeof b.category === 'object' ? b.category?.name || '' : `Category ${b.category}`;
+    }
 
     // Handle date fields
     if (field === 'date') {
@@ -116,7 +130,7 @@ export const generateChartData = (transactions, type = 'line') => {
     if (!acc[date]) {
       acc[date] = { income: 0, expense: 0 };
     }
-    if (t.type === 'income') {
+    if (t.transaction_type === 'INCOME') {
       acc[date].income += t.amount;
     } else {
       acc[date].expense += t.amount;
@@ -170,15 +184,17 @@ export const getCategoryColor = (category) => {
 // Group transactions by category
 export const groupTransactionsByCategory = (transactions) => {
   return transactions.reduce((groups, transaction) => {
-    const category = transaction.category;
-    if (!groups[category]) {
-      groups[category] = {
+    const categoryName = typeof transaction.category === 'object' 
+      ? transaction.category?.name || 'Uncategorized'
+      : `Category ${transaction.category}`;
+    if (!groups[categoryName]) {
+      groups[categoryName] = {
         total: 0,
         transactions: [],
       };
     }
-    groups[category].total += Math.abs(transaction.amount);
-    groups[category].transactions.push(transaction);
+    groups[categoryName].total += Math.abs(transaction.amount);
+    groups[categoryName].transactions.push(transaction);
     return groups;
   }, {});
 }; 
