@@ -28,8 +28,6 @@ const TransactionList = ({
     if (typeof transaction.category === 'object' && transaction.category?.name) {
       return transaction.category.name;
     }
-    // If category is just an ID, we'll show a placeholder for now
-    // In a real app, you might want to fetch category details or store them in context
     return `Category ${transaction.category}`;
   };
 
@@ -37,13 +35,7 @@ const TransactionList = ({
   const getCategoryBadge = (transaction) => {
     if (transaction.category && transaction.category.name) {
       return (
-        <span
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
-          style={{
-            backgroundColor: transaction.category.color || '#e5e7eb',
-            color: '#fff',
-          }}
-        >
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
           {transaction.category.icon && (
             <span className="mr-1">{transaction.category.icon}</span>
           )}
@@ -51,13 +43,13 @@ const TransactionList = ({
         </span>
       );
     }
-    return <span className="text-gray-400">Uncategorized</span>;
+    return <span className="text-slate-400 text-sm">Uncategorized</span>;
   };
 
   const formatAmount = (amount, type) => {
     const formattedAmount = formatCurrency(Math.abs(amount));
     return (
-      <span className={`font-medium ${type === 'EXPENSE' ? 'text-red-500' : 'text-green-500'}`}>
+      <span className={`font-semibold ${type === 'EXPENSE' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
         {type === 'EXPENSE' ? '-' : '+'}{formattedAmount}
       </span>
     );
@@ -65,12 +57,11 @@ const TransactionList = ({
 
   const formatDate = (dateString) => {
     try {
-      // Handle both ISO strings and Date objects
       const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
       return format(date, 'MMM d, yyyy');
     } catch (error) {
       console.error('Error formatting date:', error);
-      return dateString; // Fallback to original string if formatting fails
+      return dateString;
     }
   };
 
@@ -104,53 +95,58 @@ const TransactionList = ({
   const SortIcon = ({ field }) => {
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="h-4 w-4 inline-block" />
+      <ChevronUpIcon className="h-4 w-4 inline-block text-blue-600" />
     ) : (
-      <ChevronDownIcon className="h-4 w-4 inline-block" />
+      <ChevronDownIcon className="h-4 w-4 inline-block text-blue-600" />
     );
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Loading transactions...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[var(--color-card)] rounded-xl shadow-sm border border-[var(--color-border)] overflow-hidden">
+    <div className="bg-[var(--color-card)] rounded-2xl shadow-lg border border-[var(--color-border)] overflow-hidden">
       {/* Action Bar */}
-      <div className="p-4 border-b border-[var(--color-border)] flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setIsSelectMode(!isSelectMode)}
-            className="text-sm text-[var(--color-text)] hover:text-[var(--color-primary)]"
-          >
-            {isSelectMode ? 'Cancel Selection' : 'Select Transactions'}
-          </button>
-          {isSelectMode && (
+      <div className="p-4 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
             <button
-              onClick={handleSelectAll}
-              className="text-sm text-[var(--color-text)] hover:text-[var(--color-primary)]"
+              onClick={() => setIsSelectMode(!isSelectMode)}
+              className="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] font-medium transition-colors"
             >
-              {selectedTransactions.size === transactions.length ? 'Deselect All' : 'Select All'}
+              {isSelectMode ? 'Cancel Selection' : 'Select Transactions'}
+            </button>
+            {isSelectMode && (
+              <button
+                onClick={handleSelectAll}
+                className="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] font-medium transition-colors"
+              >
+                {selectedTransactions.size === transactions.length ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+          </div>
+          {isSelectMode && selectedTransactions.size > 0 && (
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors font-medium"
+            >
+              <DocumentArrowDownIcon className="h-4 w-4" />
+              Export Selected ({selectedTransactions.size})
             </button>
           )}
         </div>
-        {isSelectMode && selectedTransactions.size > 0 && (
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
-          >
-            <DocumentArrowDownIcon className="h-5 w-5" />
-            Export Selected
-          </button>
-        )}
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-[var(--color-border)]">
+        <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
           <thead className="bg-[var(--color-surface)]">
             <tr>
               {isSelectMode && (
@@ -159,34 +155,34 @@ const TransactionList = ({
                     type="checkbox"
                     checked={selectedTransactions.size === transactions.length}
                     onChange={handleSelectAll}
-                    className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                    className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-[var(--color-surface)]"
                   />
                 </th>
               )}
               <th 
                 scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)]"
+                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
                 onClick={() => handleSort('date')}
               >
                 Date <SortIcon field="date" />
               </th>
               <th 
                 scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)]"
+                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
                 onClick={() => handleSort('description')}
               >
                 Description <SortIcon field="description" />
               </th>
               <th 
                 scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)]"
+                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
                 onClick={() => handleSort('category')}
               >
                 Category <SortIcon field="category" />
               </th>
               <th 
                 scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)]"
+                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
                 onClick={() => handleSort('amount')}
               >
                 Amount <SortIcon field="amount" />
@@ -200,8 +196,8 @@ const TransactionList = ({
             {transactions.map((transaction) => (
               <tr 
                 key={transaction.id} 
-                className={`hover:bg-[var(--color-surface)] transition-colors ${
-                  selectedTransactions.has(transaction.id) ? 'bg-[var(--color-primary)] bg-opacity-5' : ''
+                className={`hover:bg-[var(--color-bg)] transition-colors ${
+                  selectedTransactions.has(transaction.id) ? 'bg-[var(--color-primary)]/10' : ''
                 }`}
               >
                 {isSelectMode && (
@@ -210,37 +206,37 @@ const TransactionList = ({
                       type="checkbox"
                       checked={selectedTransactions.has(transaction.id)}
                       onChange={() => handleSelectTransaction(transaction.id)}
-                      className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                      className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-[var(--color-surface)]"
                     />
                   </td>
                 )}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
+                <td className="px-6 py-4 whitespace-nowrap text-[var(--color-text)] font-medium">
                   {formatDate(transaction.date)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
+                <td className="px-6 py-4 whitespace-nowrap text-[var(--color-text)]">
                   {transaction.description}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
+                <td className="px-6 py-4 whitespace-nowrap">
                   {getCategoryBadge(transaction)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-6 py-4 whitespace-nowrap">
                   {formatAmount(transaction.amount, transaction.transaction_type)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => onEdit(transaction)}
-                      className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] transition-colors"
+                      className="text-[var(--color-muted)] hover:text-[var(--color-primary)] transition-colors p-1 rounded"
                       title="Edit transaction"
                     >
-                      <PencilIcon className="h-5 w-5" />
+                      <PencilIcon className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => onDelete(transaction.id)}
-                      className="text-red-500 hover:text-red-600 transition-colors"
+                      className="text-[var(--color-muted)] hover:text-red-500 transition-colors p-1 rounded"
                       title="Delete transaction"
                     >
-                      <TrashIcon className="h-5 w-5" />
+                      <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>
                 </td>
@@ -252,11 +248,16 @@ const TransactionList = ({
 
       {transactions.length === 0 && (
         <div className="text-center py-12">
-          <ArrowPathIcon className="mx-auto h-12 w-12 text-[var(--color-muted)]" />
-          <h3 className="mt-2 text-sm font-medium text-[var(--color-text)]">No transactions</h3>
-          <p className="mt-1 text-sm text-[var(--color-muted)]">
-            Get started by adding a new transaction.
+          <div className="w-16 h-16 bg-[var(--color-surface)] rounded-full flex items-center justify-center mx-auto mb-4">
+            <ArrowPathIcon className="h-8 w-8 text-[var(--color-muted)]" />
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">No transactions found</h3>
+          <p className="text-[var(--color-muted)] mb-4">
+            Get started by adding your first transaction.
           </p>
+          <button className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors font-medium">
+            Add Transaction
+          </button>
         </div>
       )}
     </div>
