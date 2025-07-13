@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import api from '../../../api/config';
 
 const FilterBar = ({
   searchQuery,
@@ -10,9 +11,30 @@ const FilterBar = ({
   onCategoryChange,
   type,
   onTypeChange,
-  categories = [],
   onReset,
 }) => {
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          const response = await api.get('/transactions/categories/');
+          setCategories(response.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <div className="bg-[var(--color-card)] rounded-xl p-4 shadow-sm border border-[var(--color-border)] mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -51,8 +73,9 @@ const FilterBar = ({
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
           className="block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+          disabled={loadingCategories}
         >
-          <option value="">All Categories</option>
+          <option value="">{loadingCategories ? 'Loading categories...' : 'All Categories'}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
@@ -68,8 +91,8 @@ const FilterBar = ({
             className="block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
           >
             <option value="">All Types</option>
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
+            <option value="INCOME">Income</option>
+            <option value="EXPENSE">Expense</option>
           </select>
           <button
             onClick={onReset}

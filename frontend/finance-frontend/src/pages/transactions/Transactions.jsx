@@ -20,6 +20,11 @@ const Transactions = () => {
     deleteTransaction 
   } = useTransactions();
 
+  // Debug logging
+  console.log('Transactions component - transactions:', transactions);
+  console.log('Transactions component - loading:', loading);
+  console.log('Transactions component - transactions length:', transactions?.length);
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [filters, setFilters] = useState({
@@ -60,8 +65,8 @@ const Transactions = () => {
       ...selectedData.map(t => [
         t.date,
         t.description,
-        t.category,
-        t.type,
+        typeof t.category === 'object' ? t.category?.name || '' : `Category ${t.category}`,
+        t.transaction_type,
         t.amount
       ])
     ].map(row => row.join(',')).join('\n');
@@ -77,13 +82,27 @@ const Transactions = () => {
     document.body.removeChild(link);
   };
 
-  const filteredTransactions = transactions
+  // Ensure transactions is always an array
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+  
+  const filteredTransactions = safeTransactions
     .filter(t => {
+      // Handle category as either object or ID
+      const categoryName = typeof t.category === 'object' 
+        ? t.category?.name || '' 
+        : `Category ${t.category}`;
+      
       const matchesSearch = t.description.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-                          t.category.toLowerCase().includes(filters.searchQuery.toLowerCase());
-      const matchesCategory = !filters.category || t.category === filters.category;
-      const matchesType = !filters.type || t.type === filters.type;
+                          categoryName.toLowerCase().includes(filters.searchQuery.toLowerCase());
+      
+      const matchesCategory = !filters.category || 
+                            (typeof t.category === 'object' 
+                              ? t.category?.id === filters.category 
+                              : t.category === filters.category);
+      
+      const matchesType = !filters.type || t.transaction_type === filters.type;
       const matchesDateRange = filterByDateRange(t, filters.dateRange.start, filters.dateRange.end);
+      
       return matchesSearch && matchesCategory && matchesType && matchesDateRange;
     });
 

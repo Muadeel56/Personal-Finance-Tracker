@@ -23,11 +23,42 @@ const TransactionList = ({
   const [selectedTransactions, setSelectedTransactions] = useState(new Set());
   const [isSelectMode, setIsSelectMode] = useState(false);
 
+  // Helper function to get category name safely
+  const getCategoryName = (transaction) => {
+    if (typeof transaction.category === 'object' && transaction.category?.name) {
+      return transaction.category.name;
+    }
+    // If category is just an ID, we'll show a placeholder for now
+    // In a real app, you might want to fetch category details or store them in context
+    return `Category ${transaction.category}`;
+  };
+
+  // Helper function to get category badge
+  const getCategoryBadge = (transaction) => {
+    if (transaction.category && transaction.category.name) {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
+          style={{
+            backgroundColor: transaction.category.color || '#e5e7eb',
+            color: '#fff',
+          }}
+        >
+          {transaction.category.icon && (
+            <span className="mr-1">{transaction.category.icon}</span>
+          )}
+          {transaction.category.name}
+        </span>
+      );
+    }
+    return <span className="text-gray-400">Uncategorized</span>;
+  };
+
   const formatAmount = (amount, type) => {
     const formattedAmount = formatCurrency(Math.abs(amount));
     return (
-      <span className={`font-medium ${type === 'expense' ? 'text-red-500' : 'text-green-500'}`}>
-        {type === 'expense' ? '-' : '+'}{formattedAmount}
+      <span className={`font-medium ${type === 'EXPENSE' ? 'text-red-500' : 'text-green-500'}`}>
+        {type === 'EXPENSE' ? '-' : '+'}{formattedAmount}
       </span>
     );
   };
@@ -190,12 +221,10 @@ const TransactionList = ({
                   {transaction.description}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)] bg-opacity-10 text-[var(--color-primary)]">
-                    {transaction.category}
-                  </span>
+                  {getCategoryBadge(transaction)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  {formatAmount(transaction.amount, transaction.type)}
+                  {formatAmount(transaction.amount, transaction.transaction_type)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end gap-2">

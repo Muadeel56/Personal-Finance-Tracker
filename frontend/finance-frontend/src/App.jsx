@@ -20,100 +20,109 @@ import Transactions from './pages/transactions/Transactions';
 import Budget from './pages/budget/Budget';
 import Reports from './pages/reports/Reports';
 
+// Wrapper component for authenticated routes
+const AuthenticatedApp = () => {
+  return (
+    <TransactionProvider>
+      <Routes>
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/transactions"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <Transactions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/budget"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <BudgetsProvider>
+                <Budget />
+              </BudgetsProvider>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Header />
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Redirect root to dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        {/* 404 Route */}
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]">
+              <div className="text-center">
+                <h1 className="text-6xl font-bold text-[var(--color-text)]">404</h1>
+                <p className="mt-4 text-xl text-[var(--color-muted)]">
+                  Page not found
+                </p>
+              </div>
+            </div>
+          }
+        />
+      </Routes>
+    </TransactionProvider>
+  );
+};
 
 const App = () => {
   return (
-    <TransactionProvider>
-      <Router>
-        <ThemeProvider>
-          <AuthProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Header />
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Header />
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Header />
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/transactions"
-                element={
-                  <ProtectedRoute>
-                    <Header />
-                    <Transactions />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/budget"
-                element={
-                  <ProtectedRoute>
-                    <Header />
-                    <BudgetsProvider>
-                      <Budget />
-                    </BudgetsProvider>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute>
-                    <Header />
-                    <Reports />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Redirect root to dashboard */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-              {/* 404 Route */}
-              <Route
-                path="*"
-                element={
-                  <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]">
-                    <div className="text-center">
-                      <h1 className="text-6xl font-bold text-[var(--color-text)]">404</h1>
-                      <p className="mt-4 text-xl text-[var(--color-muted)]">
-                        Page not found
-                      </p>
-                    </div>
-                  </div>
-                }
-              />
-            </Routes>
-          </AuthProvider>
-        </ThemeProvider>
-        <Toaster position="top-right" />
-      </Router>
-    </TransactionProvider>
+            {/* Authenticated Routes */}
+            <Route path="/*" element={<AuthenticatedApp />} />
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
+      <Toaster position="top-right" />
+    </Router>
   );
 };
 

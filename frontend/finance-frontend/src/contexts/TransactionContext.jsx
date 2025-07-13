@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import api from '../api/config';
 
 // Initial state
 const initialState = {
@@ -45,6 +46,7 @@ const transactionReducer = (state, action) => {
         loading: false,
       };
     case ActionTypes.SET_TRANSACTIONS:
+      console.log('Reducer: Setting transactions to:', action.payload);
       return {
         ...state,
         transactions: action.payload,
@@ -89,52 +91,6 @@ const transactionReducer = (state, action) => {
 // Create context
 const TransactionContext = createContext();
 
-// Mock API functions (replace with actual API calls later)
-const mockApi = {
-  getTransactions: async () => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return [
-      {
-        id: 1,
-        date: '2024-03-01',
-        description: 'Salary',
-        amount: 5000,
-        category: 'salary',
-        type: 'income',
-      },
-      {
-        id: 2,
-        date: '2024-03-02',
-        description: 'Rent',
-        amount: 1500,
-        category: 'housing',
-        type: 'expense',
-      },
-      {
-        id: 3,
-        date: '2024-03-03',
-        description: 'Groceries',
-        amount: 200,
-        category: 'food',
-        type: 'expense',
-      },
-    ];
-  },
-  addTransaction: async (transaction) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return { ...transaction, id: Date.now() };
-  },
-  updateTransaction: async (id, transaction) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return { ...transaction, id };
-  },
-  deleteTransaction: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return id;
-  },
-};
-
 // Provider component
 export const TransactionProvider = ({ children }) => {
   const [state, dispatch] = useReducer(transactionReducer, initialState);
@@ -142,11 +98,33 @@ export const TransactionProvider = ({ children }) => {
   // Fetch transactions
   const fetchTransactions = async () => {
     try {
+      // Check if user is authenticated before making API calls
+      const token = localStorage.getItem('access_token');
+      console.log('Fetching transactions, token exists:', !!token);
+      
+      if (!token) {
+        console.log('No authentication token found, skipping transaction fetch');
+        dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false if no token
+        return;
+      }
+
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-      const data = await mockApi.getTransactions();
+      console.log('Making API call to fetch transactions...');
+      const response = await api.get('/transactions/transactions/');
+      console.log('API response:', response.data);
+      
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data.results || [];
+      console.log('Processed transactions data:', data);
+      
+      console.log('Setting transactions in context:', data);
       dispatch({ type: ActionTypes.SET_TRANSACTIONS, payload: data });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after success
     } catch (error) {
+      console.error('Error fetching transactions:', error);
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after error
       toast.error('Failed to fetch transactions');
     }
   };
@@ -154,12 +132,21 @@ export const TransactionProvider = ({ children }) => {
   // Add transaction
   const addTransaction = async (transaction) => {
     try {
+      // Check if user is authenticated before making API calls
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        toast.error('Please log in to add transactions');
+        return;
+      }
+
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-      const newTransaction = await mockApi.addTransaction(transaction);
-      dispatch({ type: ActionTypes.ADD_TRANSACTION, payload: newTransaction });
+      const response = await api.post('/transactions/transactions/', transaction);
+      dispatch({ type: ActionTypes.ADD_TRANSACTION, payload: response.data });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after success
       toast.success('Transaction added successfully');
     } catch (error) {
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after error
       toast.error('Failed to add transaction');
     }
   };
@@ -167,12 +154,21 @@ export const TransactionProvider = ({ children }) => {
   // Update transaction
   const updateTransaction = async (id, transaction) => {
     try {
+      // Check if user is authenticated before making API calls
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        toast.error('Please log in to update transactions');
+        return;
+      }
+
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-      const updatedTransaction = await mockApi.updateTransaction(id, transaction);
-      dispatch({ type: ActionTypes.UPDATE_TRANSACTION, payload: updatedTransaction });
+      const response = await api.put(`/transactions/transactions/${id}/`, transaction);
+      dispatch({ type: ActionTypes.UPDATE_TRANSACTION, payload: response.data });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after success
       toast.success('Transaction updated successfully');
     } catch (error) {
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after error
       toast.error('Failed to update transaction');
     }
   };
@@ -180,8 +176,15 @@ export const TransactionProvider = ({ children }) => {
   // Delete transaction
   const deleteTransaction = async (id) => {
     try {
+      // Check if user is authenticated before making API calls
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        toast.error('Please log in to delete transactions');
+        return;
+      }
+
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-      await mockApi.deleteTransaction(id);
+      await api.delete(`/transactions/transactions/${id}/`);
       dispatch({ type: ActionTypes.DELETE_TRANSACTION, payload: id });
       toast.success('Transaction deleted successfully');
     } catch (error) {
@@ -200,9 +203,16 @@ export const TransactionProvider = ({ children }) => {
     dispatch({ type: ActionTypes.SET_SORT, payload: sort });
   };
 
-  // Fetch transactions on mount
+  // Fetch transactions on mount only if authenticated
   useEffect(() => {
-    fetchTransactions();
+    const token = localStorage.getItem('access_token');
+    console.log('TransactionContext mounted, token exists:', !!token);
+    if (token) {
+      console.log('Token found, calling fetchTransactions...');
+      fetchTransactions();
+    } else {
+      console.log('No token found, skipping fetch');
+    }
   }, []);
 
   const value = {
