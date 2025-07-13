@@ -13,4 +13,6 @@ services:
     rootDir: backend
     preDeployCommand: |
       python manage.py migrate
-      python manage.py collectstatic --noinput 
+      python manage.py collectstatic --noinput
+    postDeployCommand: |
+      python manage.py createinitialsuperuser 
