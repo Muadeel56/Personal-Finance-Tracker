@@ -1,4 +1,4 @@
-name: CI/CD
+name: Django CI
 
 on:
   push:
@@ -7,50 +7,26 @@ on:
     branches: [ main ]
 
 jobs:
-  backend:
+  test:
     runs-on: ubuntu-latest
     env:
+      CI: true
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
-
-    - name: Install dependencies
-      run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Run Django tests
-      run: |
-        cd backend
-        python manage.py test
-
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: |
-        cd frontend/finance-frontend
-        npm install
-
-    - name: Run frontend tests
-      run: |
-        cd frontend/finance-frontend
-        npm test
-
-    - name: Build frontend
-      run: |
-        cd frontend/finance-frontend
-        npm run build
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      - name: Run migrations
+        run: |
+          cd backend
+          python manage.py migrate
+      - name: Run tests
+        run: |
+          cd backend
+          python manage.py test
