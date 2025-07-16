@@ -19,6 +19,7 @@ import Settings from './pages/settings/Settings';
 import Transactions from './pages/transactions/Transactions';
 import Budget from './pages/budget/Budget';
 import Reports from './pages/reports/Reports';
+import Categories from './pages/categories/Categories';
 
 // Wrapper component for authenticated routes
 const AuthenticatedApp = () => {
@@ -78,6 +79,15 @@ const AuthenticatedApp = () => {
               <ProtectedRoute>
                 <Header />
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <Header />
+                <Categories />
               </ProtectedRoute>
             }
           />

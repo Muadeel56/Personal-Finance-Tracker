@@ -113,77 +113,79 @@ const Transactions = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">Transactions</h1>
-        <button
-          onClick={() => {
-            setSelectedTransaction(null);
-            setIsFormOpen(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
-        >
-          <PlusIcon className="h-5 w-5" />
-          Add Transaction
-        </button>
-      </div>
-
-      <FilterBar
-        searchQuery={filters.searchQuery}
-        onSearchChange={(value) => setFilters(prev => ({ ...prev, searchQuery: value }))}
-        dateRange={filters.dateRange}
-        onDateRangeChange={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
-        category={filters.category}
-        onCategoryChange={(value) => setFilters(prev => ({ ...prev, category: value }))}
-        type={filters.type}
-        onTypeChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
-        onReset={() => setFilters({
-          searchQuery: '',
-          dateRange: getCurrentMonthRange(),
-          category: '',
-          type: '',
-        })}
-      />
-
-      <TransactionList
-        transactions={sortedTransactions}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onSort={(field) => setSort(prev => ({
-          field,
-          direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
-        }))}
-        sortField={sort.field}
-        sortDirection={sort.direction}
-        onExport={handleExport}
-        loading={loading}
-      />
-
-      <Dialog
-        open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedTransaction(null);
-        }}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-lg rounded-xl bg-[var(--color-card)] p-6 shadow-lg">
-            <Dialog.Title className="text-lg font-medium text-[var(--color-text)] mb-4">
-              {selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}
-            </Dialog.Title>
-            <TransactionForm
-              onSubmit={handleSubmit}
-              initialData={selectedTransaction}
-              onCancel={() => {
-                setIsFormOpen(false);
-                setSelectedTransaction(null);
-              }}
-            />
-          </Dialog.Panel>
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-[var(--color-text)]">Transactions</h1>
+          <button
+            onClick={() => {
+              setSelectedTransaction(null);
+              setIsFormOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
+          >
+            <PlusIcon className="h-5 w-5" />
+            Add Transaction
+          </button>
         </div>
-      </Dialog>
+
+        <FilterBar
+          searchQuery={filters.searchQuery}
+          onSearchChange={(value) => setFilters(prev => ({ ...prev, searchQuery: value }))}
+          dateRange={filters.dateRange}
+          onDateRangeChange={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
+          category={filters.category}
+          onCategoryChange={(value) => setFilters(prev => ({ ...prev, category: value }))}
+          type={filters.type}
+          onTypeChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
+          onReset={() => setFilters({
+            searchQuery: '',
+            dateRange: getCurrentMonthRange(),
+            category: '',
+            type: '',
+          })}
+        />
+
+        <TransactionList
+          transactions={sortedTransactions}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onSort={(field) => setSort(prev => ({
+            field,
+            direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
+          }))}
+          sortField={sort.field}
+          sortDirection={sort.direction}
+          onExport={handleExport}
+          loading={loading}
+        />
+
+        <Dialog
+          open={isFormOpen}
+          onClose={() => {
+            setIsFormOpen(false);
+            setSelectedTransaction(null);
+          }}
+          className="relative z-50"
+        >
+          <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <Dialog.Panel className="mx-auto max-w-lg rounded-xl bg-[var(--color-card)] p-6 shadow-lg">
+              <Dialog.Title className="text-lg font-medium text-[var(--color-text)] mb-4">
+                {selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}
+              </Dialog.Title>
+              <TransactionForm
+                onSubmit={handleSubmit}
+                initialData={selectedTransaction}
+                onCancel={() => {
+                  setIsFormOpen(false);
+                  setSelectedTransaction(null);
+                }}
+              />
+            </Dialog.Panel>
+          </div>
+        </Dialog>
+      </div>
     </div>
   );
 };

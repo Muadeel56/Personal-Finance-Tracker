@@ -49,20 +49,27 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS_ALLOW_ALL_ORIGINS = True  # For dev only!
+# CORS Settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173', cast=Csv())
 CORS_ALLOWED_ORIGIN_REGEXES = [r"https://.*\.pages\.dev$"]
+
+# For development, allow all origins
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_ALL_HEADERS = True
+    CORS_ALLOW_ALL_METHODS = True
+    CORS_EXPOSE_HEADERS = ['*']
 
 
 ROOT_URLCONF = 'core.urls'
@@ -88,17 +95,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if config('CI', default=False, cast=bool):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
-    }
+# Database configuration
+DATABASE_URL = config('DATABASE_URL', default='postgres://myuser:mypassword@localhost:5432/mydb')
+DATABASES = {
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
+}
 
 
 # Password validation
@@ -199,9 +200,9 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 
 
 # Security Settings
-SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
-SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
-CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'

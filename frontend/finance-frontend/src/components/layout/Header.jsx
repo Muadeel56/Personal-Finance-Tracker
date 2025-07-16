@@ -14,6 +14,7 @@ const Header = () => {
   const navigation = [
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Transactions', path: '/transactions' },
+    { name: 'Categories', path: '/categories' },
     { name: 'Budget', path: '/budget' },
     { name: 'Reports', path: '/reports' },
   ];

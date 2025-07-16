@@ -8,7 +8,6 @@ import {
   ArrowPathIcon,
   DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
-import { formatCurrency } from '../../../utils/helpers';
 
 const TransactionList = ({ 
   transactions, 
@@ -23,6 +22,14 @@ const TransactionList = ({
   const [selectedTransactions, setSelectedTransactions] = useState(new Set());
   const [isSelectMode, setIsSelectMode] = useState(false);
 
+  // Helper function to format currency in PKR
+  const formatCurrency = (amount) => {
+    return `PKR ${Number(amount).toLocaleString('en-PK', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
   // Helper function to get category name safely
   const getCategoryName = (transaction) => {
     if (typeof transaction.category === 'object' && transaction.category?.name) {
@@ -35,7 +42,7 @@ const TransactionList = ({
   const getCategoryBadge = (transaction) => {
     if (transaction.category && transaction.category.name) {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
           {transaction.category.icon && (
             <span className="mr-1">{transaction.category.icon}</span>
           )}
@@ -43,7 +50,7 @@ const TransactionList = ({
         </span>
       );
     }
-    return <span className="text-slate-400 text-sm">Uncategorized</span>;
+    return <span className="text-[var(--color-muted)] text-sm">Uncategorized</span>;
   };
 
   const formatAmount = (amount, type) => {
