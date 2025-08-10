@@ -303,7 +303,7 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+      <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-[var(--color-text)]">Recent Transactions</h2>
           <Link to="/transactions" className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 text-sm font-medium">
