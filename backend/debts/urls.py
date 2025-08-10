@@ -3,12 +3,10 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 router = DefaultRouter()
-# Future API endpoints will be registered here
-# router.register(r'debt-transactions', views.DebtTransactionViewSet)
+router.register(r'', views.DebtTransactionViewSet, basename='debt-transactions')
 
 app_name = 'debts'
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    # Add additional URL patterns here as needed
+    path('', include(router.urls)),
 ] 
