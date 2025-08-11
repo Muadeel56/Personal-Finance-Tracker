@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Button from '../Button/Button';
 import api from '../../../api/config';
+import { parseDate } from '../../../utils/formatters';
 
 const schema = yup.object().shape({
   amount: yup
@@ -20,9 +21,23 @@ const schema = yup.object().shape({
     .string()
     .required('Category is required'),
   date: yup
-    .date()
+    .string()
     .required('Date is required')
-    .max(new Date(), 'Date cannot be in the future'),
+    .matches(/^\d{2}-\d{2}-\d{4}$/, 'Please enter date in DD-MM-YYYY format (e.g., 08-09-2025)')
+    .test('valid-date', 'Please enter a valid date', function(value) {
+      if (!value) return false;
+      const [day, month, year] = value.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
+    })
+    .test('not-future', 'Date cannot be in the future', function(value) {
+      if (!value) return false;
+      const [day, month, year] = value.split('-').map(Number);
+      const inputDate = new Date(year, month - 1, day);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // End of today
+      return inputDate <= today;
+    }),
   transaction_type: yup
     .string()
     .required('Transaction type is required')
@@ -53,8 +68,11 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
   // If initialData changes (edit mode), update the form values
   useEffect(() => {
     if (initialData && initialData.id) {
+      // Ensure date is in YYYY-MM-DD format for the date input
+      const formattedDate = parseDate(initialData.date) || new Date().toISOString().split('T')[0];
       reset({
         ...initialData,
+        date: formattedDate,
         category: initialData?.category?.id || initialData?.category || '',
       });
     }
@@ -85,10 +103,17 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
       return;
     }
     try {
+      // Ensure date is properly formatted as YYYY-MM-DD
+      const formattedDate = parseDate(data.date);
+      if (!formattedDate) {
+        alert('Invalid date format. Please use YYYY-MM-DD format.');
+        return;
+      }
+      
       // Transform data to match backend expectations
       const transformedData = {
         ...data,
-        date: new Date(data.date).toISOString().split('T')[0],
+        date: formattedDate,
         category_id: Number(data.category), // Send category_id for backend
         transaction_type: data.transaction_type,
       };
@@ -180,10 +205,15 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
           Date
         </label>
         <input
-          type="date"
+          type="text"
           {...register('date')}
           className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          placeholder="DD-MM-YYYY (e.g., 08-09-2025)"
+          autoComplete="off"
         />
+        <p className="mt-1 text-xs text-[var(--color-muted)]">
+          Format: DD-MM-YYYY (e.g., 08-09-2025 for August 9th, 2025)
+        </p>
         {errors.date && (
           <p className="mt-1 text-sm text-red-500">{errors.date.message}</p>
         )}
