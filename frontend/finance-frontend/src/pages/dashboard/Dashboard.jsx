@@ -9,8 +9,8 @@ import TransactionList from '../../components/common/Transactions/TransactionLis
 import { getDashboardStats } from '../../api/dashboard';
 
 const Dashboard = () => {
-  const { transactions, loading } = useTransactions();
-  const { budgets = [] } = useBudgets();
+  const { loading } = useTransactions();
+  const { budgets = [], budgetOverview, fetchBudgetOverview } = useBudgets();
   const [timeRange, setTimeRange] = useState('current_month');
   const [dashboardData, setDashboardData] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
@@ -34,13 +34,17 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [timeRange]);
 
-  // Helper: Calculate spent for a budget
-  const getSpentForBudget = (budget) => {
-    // For simplicity, sum all transactions in the budget period
-    // (If you use category allocations, you can refine this)
-    return transactions
-      .filter(t => t.date >= budget.start_date && t.date <= budget.end_date)
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+  // Fetch budget overview data for correct spending calculations
+  useEffect(() => {
+    fetchBudgetOverview();
+  }, [fetchBudgetOverview]);
+
+  // Helper: Get budget data from overview (with correct spending calculation)
+  const getBudgetData = (budgetId) => {
+    if (budgetOverview?.budgets) {
+      return budgetOverview.budgets.find(b => b.id === budgetId);
+    }
+    return null;
   };
 
   if (loading || dashboardLoading) {
@@ -206,16 +210,19 @@ const Dashboard = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {budgets.map((b) => {
-              const spent = getSpentForBudget(b);
+              const budgetData = getBudgetData(b.id);
+              const spent = budgetData?.total_spent || 0;
               const total = Number(b.total_amount);
-              const percent = total > 0 ? Math.min((spent / total) * 100, 100) : 0;
+              const percent = budgetData?.percentage_used || 0;
+              const isOverBudget = budgetData?.is_over_budget || false;
+              
               return (
                 <div key={b.id} className="bg-[var(--color-surface)] rounded-lg p-4 border border-[var(--color-border)] hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-[var(--color-text)]">{b.name}</h3>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      percent < 90 ? 'bg-green-100 text-green-700' : 
-                      percent < 100 ? 'bg-yellow-100 text-yellow-700' : 
+                      budgetData?.status === 'on_track' ? 'bg-green-100 text-green-700' : 
+                      budgetData?.status === 'warning' ? 'bg-yellow-100 text-yellow-700' : 
                       'bg-red-100 text-red-700'
                     }`}>
                       {percent.toFixed(0)}%
@@ -225,19 +232,19 @@ const Dashboard = () => {
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${
-                        percent < 90 ? 'bg-green-500' : 
-                        percent < 100 ? 'bg-yellow-500' : 
+                        budgetData?.status === 'on_track' ? 'bg-green-500' : 
+                        budgetData?.status === 'warning' ? 'bg-yellow-500' : 
                         'bg-red-500'
                       }`}
-                      style={{ width: `${percent}%` }}
+                      style={{ width: `${Math.min(percent, 100)}%` }}
                     ></div>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--color-muted)]">Spent: <span className="font-medium text-[var(--color-text)]">PKR {spent.toFixed(2)}</span></span>
                     <span className="text-[var(--color-muted)]">Budget: <span className="font-medium text-[var(--color-text)]">PKR {total.toFixed(2)}</span></span>
                   </div>
-                  {percent >= 100 && <div className="text-xs text-red-600 mt-2 font-medium">⚠️ Over budget!</div>}
-                  {percent >= 90 && percent < 100 && <div className="text-xs text-yellow-600 mt-2 font-medium">⚠️ Almost at limit</div>}
+                  {isOverBudget && <div className="text-xs text-red-600 mt-2 font-medium">⚠️ Over budget!</div>}
+                  {budgetData?.status === 'warning' && <div className="text-xs text-yellow-600 mt-2 font-medium">⚠️ Almost at limit</div>}
                 </div>
               );
             })}

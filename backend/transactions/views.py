@@ -25,7 +25,24 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Category.objects.filter(user=self.request.user)
+        queryset = Category.objects.filter(user=self.request.user)
+        
+        # Filter by type if provided
+        category_type = self.request.query_params.get('type')
+        if category_type:
+            if category_type.lower() == 'income':
+                queryset = queryset.filter(is_income=True)
+            elif category_type.lower() == 'expense':
+                queryset = queryset.filter(is_income=False)
+        
+        # Filter by parent if provided
+        parent = self.request.query_params.get('parent')
+        if parent == 'null':
+            queryset = queryset.filter(parent__isnull=True)
+        elif parent:
+            queryset = queryset.filter(parent_id=parent)
+        
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
