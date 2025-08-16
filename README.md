@@ -8,6 +8,22 @@ This project consists of two main parts:
 - Frontend: A modern React application with a beautiful UI
 - Backend: A Django REST Framework API
 
+## Project Structure
+
+```
+personal-finance-tracker/
+├── frontend/          # React application
+├── backend/           # Django application
+├── docs/             # Project documentation
+│   ├── features/     # Feature documentation
+│   ├── development/  # Development docs
+│   └── deployment/   # Deployment docs
+├── scripts/          # Utility scripts and tests
+├── .github/          # GitHub workflows and templates
+├── README.md         # Main project README
+└── .gitignore        # Git ignore rules
+```
+
 ## Quick Start
 
 ### Frontend
@@ -29,8 +45,10 @@ python manage.py runserver
 
 ## Documentation
 
+- [Project Documentation](docs/README.md)
 - [Frontend Documentation](frontend/finance-frontend/README.md)
 - [Backend Documentation](backend/README.md)
+- [Scripts and Utilities](scripts/README.md)
 
 ## Features
 
@@ -76,6 +94,8 @@ python manage.py runserver
 4. Push to the branch
 5. Open a Pull Request
 
+See [CONTRIBUTING.md](docs/deployment/CONTRIBUTING.md) for detailed guidelines.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -115,8 +135,8 @@ This project uses [Semantic Versioning](https://semver.org/):
 - **MINOR** version when you add functionality in a backwards-compatible manner
 - **PATCH** version when you make backwards-compatible bug fixes
 
-All changes are tracked in [CHANGELOG.md](CHANGELOG.md). Update the changelog for every significant change.
+All changes are tracked in [CHANGELOG.md](docs/deployment/CHANGELOG.md). Update the changelog for every significant change.
 
 ## How to Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on contributing, including development setup, commit conventions, and pull request process. 
+See [CONTRIBUTING.md](docs/deployment/CONTRIBUTING.md) for detailed guidelines on contributing, including development setup, commit conventions, and pull request process. 
