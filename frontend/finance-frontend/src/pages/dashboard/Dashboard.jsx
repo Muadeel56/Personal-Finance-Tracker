@@ -495,7 +495,7 @@ const Dashboard = () => {
                       {txn.description || txn.title || 'Transaction'}
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      {txn.category_name || txn.category || '—'} · {txn.date ? new Date(txn.date).toLocaleDateString('en-PK', { month: 'short', day: 'numeric' }) : ''}
+                      {txn.category?.name || txn.category_name || '—'} · {txn.date ? new Date(txn.date).toLocaleDateString('en-PK', { month: 'short', day: 'numeric' }) : ''}
                     </div>
                   </div>
                   <span className={`badge badge-${isIncome ? 'up' : 'down'}`}>
