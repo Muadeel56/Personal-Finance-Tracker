@@ -1,12 +1,82 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Doughnut, Line } from 'react-chartjs-2';
 import { useBudgets } from '../../contexts/BudgetsContext';
 import { useTransactions } from '../../contexts/TransactionContext';
-import Card from '../../components/common/Card/Card';
-import BudgetProgress from '../../components/common/Budget/BudgetProgress';
-import CategoryPieChart from '../../components/common/Charts/CategoryPieChart';
-import TransactionList from '../../components/common/Transactions/TransactionList';
 import { getDashboardStats } from '../../api/dashboard';
+
+ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
+
+const CAT_COLORS = ['#6366F1', '#10B981', '#F43F5E', '#F59E0B', '#8B5CF6', '#0EA5E9', '#14B8A6'];
+const CAT_BG    = ['rgba(99,102,241,0.15)', 'rgba(16,185,129,0.15)', 'rgba(244,63,94,0.15)', 'rgba(245,158,11,0.15)', 'rgba(139,92,246,0.15)', 'rgba(14,165,233,0.15)', 'rgba(20,184,166,0.15)'];
+
+const fmt = (n) => new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n ?? 0);
+
+const RingProgress = ({ pct, color = 'var(--accent)' }) => {
+  const r = 22;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (Math.min(pct, 100) / 100) * circ;
+  return (
+    <svg width="56" height="56" viewBox="0 0 56 56">
+      <circle cx="28" cy="28" r={r} fill="none" stroke="var(--surface-3)" strokeWidth="4" />
+      <circle
+        cx="28" cy="28" r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        transform="rotate(-90 28 28)"
+        style={{ transition: 'stroke-dashoffset 1s cubic-bezier(.22,.61,.36,1)' }}
+      />
+      <text x="28" y="32" textAnchor="middle" fontSize="10" fontWeight="700"
+        fontFamily="var(--font-mono)" fill={color}>
+        {Math.round(pct)}%
+      </text>
+    </svg>
+  );
+};
+
+const StatCard = ({ label, value, sub, badge, badgeType, ring, ringColor, icon, iconBg }) => (
+  <div className="card rise" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <span className="t-label dim">{label}</span>
+      {icon && (
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '10px',
+          background: iconBg || 'var(--surface-2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
+        }}>
+          {icon}
+        </div>
+      )}
+      {ring !== undefined && <RingProgress pct={ring} color={ringColor} />}
+    </div>
+    <div>
+      <div className="num" style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+        {value}
+      </div>
+      {sub && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{sub}</div>}
+    </div>
+    {badge && (
+      <span className={`badge badge-${badgeType || 'amber'}`} style={{ alignSelf: 'flex-start' }}>
+        {badge}
+      </span>
+    )}
+  </div>
+);
 
 const Dashboard = () => {
   const { loading } = useTransactions();
@@ -16,235 +86,359 @@ const Dashboard = () => {
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setDashboardLoading(true);
-      setError(null);
-      try {
-        const response = await getDashboardStats(timeRange);
-        setDashboardData(response.data);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
-      } finally {
-        setDashboardLoading(false);
-      }
-    };
+  const hasInitialized = useRef(false);
+  const isFetchingDashboard = useRef(false);
 
-    fetchDashboardData();
+  const fetchDashboardData = useCallback(async () => {
+    if (isFetchingDashboard.current) return;
+    isFetchingDashboard.current = true;
+    setDashboardLoading(true);
+    setError(null);
+    try {
+      const response = await getDashboardStats(timeRange);
+      setDashboardData(response.data);
+    } catch (err) {
+      setError('Failed to load dashboard data');
+    } finally {
+      setDashboardLoading(false);
+      isFetchingDashboard.current = false;
+    }
   }, [timeRange]);
 
-  // Fetch budget overview data for correct spending calculations
   useEffect(() => {
-    fetchBudgetOverview();
-  }, [fetchBudgetOverview]);
-
-  // Helper: Get budget data from overview (with correct spending calculation)
-  const getBudgetData = (budgetId) => {
-    if (budgetOverview?.budgets) {
-      return budgetOverview.budgets.find(b => b.id === budgetId);
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      fetchBudgetOverview();
+      fetchDashboardData();
     }
-    return null;
-  };
+  }, []);
+
+  useEffect(() => {
+    if (hasInitialized.current) fetchDashboardData();
+  }, [timeRange, fetchDashboardData]);
+
+  const getBudgetData = (budgetId) => budgetOverview?.budgets?.find((b) => b.id === budgetId) || null;
 
   if (loading || dashboardLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="spinner" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2 text-red-500">Error Loading Dashboard</h2>
-          <p className="text-[var(--color-muted)]">{error}</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="badge badge-down" style={{ fontSize: '14px', padding: '6px 14px', marginBottom: '8px' }}>Error</div>
+          <p style={{ color: 'var(--text-secondary)' }}>{error}</p>
         </div>
       </div>
     );
   }
 
-  const stats = dashboardData?.statistics || {
-    total_income: 0,
-    total_expenses: 0,
-    net_balance: 0,
-    savings_rate: 0
+  const stats = dashboardData?.statistics || { total_income: 0, total_expenses: 0, net_balance: 0, savings_rate: 0 };
+  const categoryData = dashboardData?.category_breakdown?.map((i) => ({ name: i.category, value: i.amount })) || [];
+  const recentTransactions = dashboardData?.recent_transactions || [];
+  const trendData = dashboardData?.trend_data?.slice(-6) || [];
+
+  /* ---- Chart configs ---- */
+  const lineData = {
+    labels: trendData.map((m) => m.month),
+    datasets: [
+      {
+        label: 'Income',
+        data: trendData.map((m) => m.income),
+        borderColor: 'var(--income)',
+        backgroundColor: 'rgba(16,185,129,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'var(--income)',
+        borderWidth: 2,
+      },
+      {
+        label: 'Expenses',
+        data: trendData.map((m) => m.expenses),
+        borderColor: 'var(--expense)',
+        backgroundColor: 'rgba(239,68,68,0.06)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'var(--expense)',
+        borderWidth: 2,
+      },
+    ],
   };
 
-  const categoryData = dashboardData?.category_breakdown?.map(item => ({
-    name: item.category,
-    value: item.amount
-  })) || [];
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: 'var(--text-secondary)',
+          font: { family: 'var(--font-body)', size: 12, weight: '500' },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 16,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'var(--surface-2)',
+        titleColor: 'var(--text-primary)',
+        bodyColor: 'var(--text-secondary)',
+        borderColor: 'var(--border-subtle)',
+        borderWidth: 1,
+        cornerRadius: 10,
+        padding: 10,
+        callbacks: {
+          label: (ctx) => ` PKR ${fmt(ctx.raw)}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: 'var(--grid-line)', drawBorder: false },
+        ticks: { color: 'var(--text-muted)', font: { family: 'var(--font-mono)', size: 11 }, callback: (v) => `${fmt(v)}` },
+        border: { display: false },
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: 'var(--text-muted)', font: { family: 'var(--font-body)', size: 12 } },
+        border: { display: false },
+      },
+    },
+  };
 
-  const recentTransactions = dashboardData?.recent_transactions || [];
+  const totalCat = categoryData.reduce((s, i) => s + i.value, 0);
+  const donutData = {
+    labels: categoryData.map((i) => i.name),
+    datasets: [{
+      data: categoryData.map((i) => i.value),
+      backgroundColor: CAT_BG.slice(0, categoryData.length),
+      borderColor: CAT_COLORS.slice(0, categoryData.length),
+      borderWidth: 2,
+      hoverOffset: 6,
+    }],
+  };
+
+  const donutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          color: 'var(--text-secondary)',
+          font: { family: 'var(--font-body)', size: 12 },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 14,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'var(--surface-2)',
+        titleColor: 'var(--text-primary)',
+        bodyColor: 'var(--text-secondary)',
+        borderColor: 'var(--border-subtle)',
+        borderWidth: 1,
+        cornerRadius: 10,
+        callbacks: {
+          label: (ctx) => ` PKR ${fmt(ctx.raw)} (${totalCat > 0 ? ((ctx.raw / totalCat) * 100).toFixed(1) : 0}%)`,
+        },
+      },
+    },
+    animation: { animateRotate: true, animateScale: true, duration: 900 },
+  };
+
+  const RANGE_OPTS = [
+    { value: 'current_month', label: 'This Month' },
+    { value: 'previous_month', label: 'Last Month' },
+    { value: 'current_year', label: 'This Year' },
+  ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[var(--color-text)]">Dashboard</h1>
-              <p className="mt-2 text-[var(--color-muted)]">
-                Track your finances and stay on top of your budget
-              </p>
-            </div>
-            <div className="mt-4 sm:mt-0">
-              <div className="flex bg-[var(--color-surface)] rounded-lg p-1 shadow-sm">
-                <button
-                  onClick={() => setTimeRange('current_month')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    timeRange === 'current_month'
-                      ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                      : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  Current Month
-                </button>
-                <button
-                  onClick={() => setTimeRange('previous_month')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    timeRange === 'previous_month'
-                      ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                      : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  Previous Month
-                </button>
-                <button
-                  onClick={() => setTimeRange('current_year')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    timeRange === 'current_year'
-                      ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                      : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  Current Year
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[var(--color-muted)]">Total Balance</p>
-              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">
-                PKR {stats.net_balance?.toFixed(2) || '0.00'}
-              </p>
-            </div>
-            <div className="h-12 w-12 bg-[var(--color-primary)] bg-opacity-10 rounded-lg flex items-center justify-center">
-              <span className="text-[var(--color-primary)] text-xl">💰</span>
-            </div>
-          </div>
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h1>Dashboard</h1>
+          <p>Track your finances and stay on top of your budget</p>
         </div>
-        
-        <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[var(--color-muted)]">Monthly Income</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
-                PKR {stats.total_income?.toFixed(2) || '0.00'}
-              </p>
-            </div>
-            <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-green-600 text-xl">📈</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[var(--color-muted)]">Monthly Expenses</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">
-                PKR {stats.total_expenses?.toFixed(2) || '0.00'}
-              </p>
-            </div>
-            <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <span className="text-red-600 text-xl">📉</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[var(--color-muted)]">Savings Rate</p>
-              <p className="text-2xl font-bold text-[var(--color-primary)] mt-1">
-                {stats.savings_rate?.toFixed(1) || '0.0'}%
-              </p>
-            </div>
-            <div className="h-12 w-12 bg-[var(--color-primary)] bg-opacity-10 rounded-lg flex items-center justify-center">
-              <span className="text-[var(--color-primary)] text-xl">🎯</span>
-            </div>
-          </div>
+        <div style={{ display: 'flex', background: 'var(--surface-1)', border: 'var(--card-border)', borderRadius: '12px', padding: '4px', gap: '2px', boxShadow: 'var(--card-shadow)' }}>
+          {RANGE_OPTS.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => setTimeRange(o.value)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '9px',
+                fontSize: '13px',
+                fontWeight: 600,
+                fontFamily: 'var(--font-display)',
+                border: 'none',
+                cursor: 'pointer',
+                background: timeRange === o.value ? 'var(--accent-grad)' : 'transparent',
+                color: timeRange === o.value ? '#1A1206' : 'var(--text-secondary)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Budget Summary Section */}
-      <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-[var(--color-text)]">Budget Summary</h2>
-          <Link to="/budget" className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 text-sm font-medium">
+      {/* Zone A — KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <StatCard
+          label="Net Balance"
+          value={`PKR ${fmt(stats.net_balance)}`}
+          sub="Total across all accounts"
+          icon="💰"
+          iconBg="var(--accent-glow)"
+        />
+        <StatCard
+          label="Income"
+          value={`PKR ${fmt(stats.total_income)}`}
+          sub="This period"
+          badge="+ Earned"
+          badgeType="up"
+          icon="📈"
+          iconBg="var(--income-muted)"
+        />
+        <StatCard
+          label="Expenses"
+          value={`PKR ${fmt(stats.total_expenses)}`}
+          sub="This period"
+          badge="Spent"
+          badgeType="down"
+          icon="📉"
+          iconBg="var(--expense-muted)"
+        />
+        <StatCard
+          label="Savings Rate"
+          value={`${(stats.savings_rate ?? 0).toFixed(1)}%`}
+          sub="Of total income saved"
+          ring={stats.savings_rate ?? 0}
+          ringColor={stats.savings_rate >= 20 ? 'var(--income)' : stats.savings_rate >= 10 ? 'var(--accent)' : 'var(--expense)'}
+        />
+      </div>
+
+      {/* Zone B — Charts */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+
+        {/* Cash Flow chart */}
+        <div className="card" style={{ padding: '22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <span className="section-title">Cash Flow</span>
+            <Link to="/reports" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
+              Reports →
+            </Link>
+          </div>
+          {trendData.length === 0 ? (
+            <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📊</div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No trend data yet</p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ height: '220px' }}>
+              <Line data={lineData} options={lineOptions} />
+            </div>
+          )}
+        </div>
+
+        {/* Spending by Category */}
+        <div className="card" style={{ padding: '22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <span className="section-title">Spending by Category</span>
+            <Link to="/categories" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
+              Manage →
+            </Link>
+          </div>
+          {categoryData.length === 0 ? (
+            <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🍩</div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No category data yet</p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ position: 'relative', height: '220px' }}>
+              <Doughnut data={donutData} options={donutOptions} />
+              <div style={{
+                position: 'absolute', top: '50%', left: '30%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center', pointerEvents: 'none',
+              }}>
+                <div className="num" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  PKR {fmt(totalCat)}
+                </div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Total
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Zone C — Budget Overview */}
+      <div className="card" style={{ padding: '22px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+          <span className="section-title">Budget Overview</span>
+          <Link to="/budget" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
             View All →
           </Link>
         </div>
         {budgets.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--color-primary)] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-[var(--color-primary)] text-2xl">📊</span>
-            </div>
-            <h3 className="text-lg font-medium text-[var(--color-text)] mb-2">No budgets found</h3>
-            <p className="text-[var(--color-muted)] mb-4">Create your first budget to start tracking your spending</p>
-            <Link to="/budget" className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
-              Create Budget
-            </Link>
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>🎯</div>
+            <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '6px' }}>No budgets yet</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px' }}>
+              Create your first budget to start tracking spending
+            </p>
+            <Link to="/budget" className="btn btn-primary btn-sm">Create Budget</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {budgets.map((b) => {
-              const budgetData = getBudgetData(b.id);
-              const spent = budgetData?.total_spent || 0;
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
+            {budgets.slice(0, 6).map((b) => {
+              const bd = getBudgetData(b.id);
+              const spent = bd?.total_spent || 0;
               const total = Number(b.total_amount);
-              const percent = budgetData?.percentage_used || 0;
-              const isOverBudget = budgetData?.is_over_budget || false;
-              
+              const pct = bd?.percentage_used || 0;
+              const status = bd?.status || 'on_track';
+              const fillClass = status === 'on_track' ? 'green' : status === 'warning' ? 'warn' : 'over';
               return (
-                <div key={b.id} className="bg-[var(--color-surface)] rounded-lg p-4 border border-[var(--color-border)] hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-[var(--color-text)]">{b.name}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      budgetData?.status === 'on_track' ? 'bg-green-100 text-green-700' : 
-                      budgetData?.status === 'warning' ? 'bg-yellow-100 text-yellow-700' : 
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {percent.toFixed(0)}%
+                <div key={b.id} style={{
+                  background: 'var(--surface-2)',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  border: '1px solid var(--border-subtle)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+                      {b.name}
+                    </span>
+                    <span className={`badge badge-${status === 'on_track' ? 'up' : status === 'warning' ? 'warn' : 'down'}`}>
+                      {pct.toFixed(0)}%
                     </span>
                   </div>
-                  <div className="text-xs text-[var(--color-muted)] mb-3">{b.period_type} | {b.start_date} - {b.end_date}</div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        budgetData?.status === 'on_track' ? 'bg-green-500' : 
-                        budgetData?.status === 'warning' ? 'bg-yellow-500' : 
-                        'bg-red-500'
-                      }`}
-                      style={{ width: `${Math.min(percent, 100)}%` }}
-                    ></div>
+                  <div className="track" style={{ marginBottom: '10px' }}>
+                    <div className={`fill ${fillClass}`} style={{ width: `${Math.min(pct, 100)}%` }} />
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--color-muted)]">Spent: <span className="font-medium text-[var(--color-text)]">PKR {spent.toFixed(2)}</span></span>
-                    <span className="text-[var(--color-muted)]">Budget: <span className="font-medium text-[var(--color-text)]">PKR {total.toFixed(2)}</span></span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
+                    <span>PKR {fmt(spent)} spent</span>
+                    <span>of PKR {fmt(total)}</span>
                   </div>
-                  {isOverBudget && <div className="text-xs text-red-600 mt-2 font-medium">⚠️ Over budget!</div>}
-                  {budgetData?.status === 'warning' && <div className="text-xs text-yellow-600 mt-2 font-medium">⚠️ Almost at limit</div>}
                 </div>
               );
             })}
@@ -252,81 +446,69 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-[var(--color-text)]">Expense Categories</h2>
-            <Link to="/categories" className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 text-sm font-medium">
-              Manage →
-            </Link>
-          </div>
-          {categoryData.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-[var(--color-primary)] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-[var(--color-primary)] text-2xl">📊</span>
-              </div>
-              <h3 className="text-lg font-medium text-[var(--color-text)] mb-2">No expense data</h3>
-              <p className="text-[var(--color-muted)]">Add some transactions to see your spending breakdown</p>
-            </div>
-          ) : (
-            <div className="h-80">
-              <CategoryPieChart data={categoryData} />
-            </div>
-          )}
-        </div>
-        
-        <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-[var(--color-text)]">Monthly Trend</h2>
-            <Link to="/reports" className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 text-sm font-medium">
-              View Reports →
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {dashboardData?.trend_data?.slice(-6).map((month, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-[var(--color-surface)] rounded-lg">
-                <span className="text-sm font-medium text-[var(--color-text)]">{month.month}</span>
-                <div className="flex gap-6 text-sm">
-                  <div className="text-center">
-                    <div className="text-green-600 font-semibold">PKR {month.income.toFixed(2)}</div>
-                    <div className="text-xs text-[var(--color-muted)]">Income</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-red-600 font-semibold">PKR {month.expenses.toFixed(2)}</div>
-                    <div className="text-xs text-[var(--color-muted)]">Expenses</div>
-                  </div>
-                  <div className="text-center">
-                    <div className={`font-semibold ${month.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      PKR {month.balance.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-[var(--color-muted)]">Balance</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Transactions */}
-      <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-[var(--color-text)]">Recent Transactions</h2>
-          <Link to="/transactions" className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 text-sm font-medium">
+      {/* Zone D — Recent Transactions */}
+      <div className="card" style={{ padding: '22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+          <span className="section-title">Recent Transactions</span>
+          <Link to="/transactions" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
             View All →
           </Link>
         </div>
-        <TransactionList
-          transactions={recentTransactions}
-          onEdit={() => {}}
-          onDelete={() => {}}
-          loading={false}
-        />
+        {recentTransactions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>📋</div>
+            <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '6px' }}>No transactions yet</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px' }}>
+              Add your first transaction to get started
+            </p>
+            <Link to="/transactions" className="btn btn-primary btn-sm">Add Transaction</Link>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {recentTransactions.slice(0, 8).map((txn, i) => {
+              const isIncome = txn.transaction_type === 'income';
+              const color = CAT_COLORS[i % CAT_COLORS.length];
+              const bg = CAT_BG[i % CAT_BG.length];
+              return (
+                <div key={txn.id || i} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  background: 'transparent',
+                  transition: 'background 0.15s',
+                  cursor: 'default',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-2)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div className="cat-ic" style={{ background: bg, color }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      {isIncome
+                        ? <><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></>
+                        : <><line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" /></>}
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {txn.description || txn.title || 'Transaction'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      {txn.category_name || txn.category || '—'} · {txn.date ? new Date(txn.date).toLocaleDateString('en-PK', { month: 'short', day: 'numeric' }) : ''}
+                    </div>
+                  </div>
+                  <span className={`badge badge-${isIncome ? 'up' : 'down'}`}>
+                    {isIncome ? '+' : '-'}PKR {fmt(txn.amount)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
-  </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

@@ -1,51 +1,34 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import Card from '../../components/common/Card/Card';
-import Input from '../../components/common/Input/Input';
-import Button from '../../components/common/Button/Button';
+
+const SparkIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+  </svg>
+);
 
 const Register = () => {
-  const navigate = useNavigate();
   const { register } = useAuth();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name) {
-      newErrors.name = 'Name is required';
-    }
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
+    if (!formData.name) newErrors.name = 'Name is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 8) newErrors.password = 'Must be at least 8 characters';
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -53,101 +36,102 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setIsLoading(true);
     try {
-      const { success, error } = await register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (!success) {
-        setErrors({ submit: error });
-      }
-    } catch (error) {
+      const { success, error } = await register({ name: formData.name, email: formData.email, password: formData.password });
+      if (!success) setErrors({ submit: error });
+    } catch {
       setErrors({ submit: 'Registration failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const Field = ({ name, label, type = 'text', placeholder, autoComplete }) => (
+    <div>
+      <label className="field-label">{label}</label>
+      <div className={`field ${errors[name] ? 'error' : ''}`}>
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+        />
+      </div>
+      {errors[name] && <p className="form-error">{errors[name]}</p>}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] dark:bg-[var(--color-bg)] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-[var(--color-text)]">
-            Create your account
-          </h2>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
-            Or{' '}
-            <Link
-              to="/login"
-              className="font-medium text-[var(--color-primary)] hover:underline"
-            >
-              sign in to your account
-            </Link>
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--bg-base)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+    }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '14px',
+            background: 'var(--accent-grad)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            color: '#1A1206', marginBottom: '16px',
+          }}>
+            <SparkIcon />
+          </div>
+          <h1 style={{
+            fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 700,
+            color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em',
+          }}>
+            Create account
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '6px' }}>
+            Start tracking your finances today
           </p>
         </div>
 
-        <Card>
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <Input
-              label="Full Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              error={errors.name}
-              required
-            />
-
-            <Input
-              label="Email address"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              required
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              required
-            />
-
-            <Input
-              label="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              error={errors.confirmPassword}
-              required
-            />
+        <div className="card" style={{ padding: '32px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <Field name="name" label="Full name" placeholder="Jane Smith" autoComplete="name" />
+            <Field name="email" label="Email address" type="email" placeholder="you@example.com" autoComplete="email" />
+            <Field name="password" label="Password" type="password" placeholder="Min 8 characters" autoComplete="new-password" />
+            <Field name="confirmPassword" label="Confirm password" type="password" placeholder="Repeat password" autoComplete="new-password" />
 
             {errors.submit && (
-              <p className="text-sm text-[var(--color-danger)]">{errors.submit}</p>
+              <div style={{
+                padding: '10px 14px', borderRadius: '10px',
+                background: 'var(--expense-muted)', color: 'var(--expense)',
+                fontSize: '13px', fontWeight: 500,
+              }}>
+                {errors.submit}
+              </div>
             )}
 
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              fullWidth
+              className="btn btn-primary"
+              style={{ width: '100%', height: '48px', fontSize: '15px', marginTop: '4px' }}
               disabled={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
-            </Button>
+              {isLoading ? 'Creating account…' : 'Create account'}
+            </button>
           </form>
-        </Card>
+        </div>
+
+        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
 };
 
-export default Register; 
+export default Register;

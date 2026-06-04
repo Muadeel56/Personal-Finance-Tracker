@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { 
-  PlusIcon, 
-  PencilIcon, 
-  TrashIcon, 
-  EyeIcon,
-  EyeSlashIcon,
-  CurrencyDollarIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
-} from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import CategoryModal from '../../components/categories/CategoryModal';
 import DeleteConfirmModal from '../../components/common/DeleteConfirmModal';
 import { categoriesAPI } from '../../api/categories';
+
+const CAT_COLORS = ['#6366F1','#10B981','#F43F5E','#F59E0B','#8B5CF6','#0EA5E9','#14B8A6','#F97316'];
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -21,271 +14,156 @@ const Categories = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [deletingCategory, setDeletingCategory] = useState(null);
-  const [filterType, setFilterType] = useState('all'); // all, income, expense
+  const [filterType, setFilterType] = useState('all');
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetchCategories(); }, []);
 
   const fetchCategories = async () => {
     try {
       setLoading(true);
       const data = await categoriesAPI.getCategories();
       setCategories(data);
-    } catch (error) {
-      toast.error('Failed to load categories');
-      console.error('Error fetching categories:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to load categories'); }
+    finally { setLoading(false); }
   };
 
-  const handleCreateCategory = () => {
-    setEditingCategory(null);
-    setShowModal(true);
-  };
-
-  const handleEditCategory = (category) => {
-    setEditingCategory(category);
-    setShowModal(true);
-  };
-
-  const handleDeleteCategory = (category) => {
-    setDeletingCategory(category);
-    setShowDeleteModal(true);
-  };
-
-  const handleSaveCategory = async (categoryData) => {
+  const handleSaveCategory = async (data) => {
     try {
-      if (editingCategory) {
-        await categoriesAPI.updateCategory(editingCategory.id, categoryData);
-        toast.success('Category updated successfully');
-      } else {
-        await categoriesAPI.createCategory(categoryData);
-        toast.success('Category created successfully');
-      }
+      if (editingCategory) { await categoriesAPI.updateCategory(editingCategory.id, data); toast.success('Category updated'); }
+      else { await categoriesAPI.createCategory(data); toast.success('Category created'); }
       setShowModal(false);
       fetchCategories();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save category');
-    }
+    } catch (err) { toast.error(err.response?.data?.detail || 'Failed to save category'); }
   };
 
   const handleConfirmDelete = async () => {
     try {
       await categoriesAPI.deleteCategory(deletingCategory.id);
-      toast.success('Category deleted successfully');
+      toast.success('Category deleted');
       setShowDeleteModal(false);
       fetchCategories();
-    } catch (error) {
-      toast.error('Failed to delete category');
-    }
+    } catch { toast.error('Failed to delete category'); }
   };
 
-  const filteredCategories = categories.filter(category => {
-    if (filterType === 'income') return category.is_income;
-    if (filterType === 'expense') return !category.is_income;
+  const filteredCategories = categories.filter((c) => {
+    if (filterType === 'income') return c.is_income;
+    if (filterType === 'expense') return !c.is_income;
     return true;
   });
 
-  const getCategoryIcon = (category) => {
-    if (category.icon) return category.icon;
-    return category.is_income ? '💰' : '💸';
-  };
-
-  const getCategoryColor = (category) => {
-    return category.color || (category.is_income ? '#10B981' : '#EF4444');
-  };
+  const tabStyle = (active) => ({
+    padding: '7px 14px', borderRadius: '9px', fontSize: '13px', fontWeight: 600,
+    fontFamily: 'var(--font-display)', border: 'none', cursor: 'pointer',
+    background: active ? 'var(--accent-grad)' : 'transparent',
+    color: active ? '#1A1206' : 'var(--text-secondary)',
+    transition: 'all 0.15s',
+    display: 'flex', alignItems: 'center', gap: '5px',
+  });
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--color-bg)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="spinner" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[var(--color-text)]">Categories</h1>
-              <p className="mt-2 text-[var(--color-muted)]">
-                Manage your transaction categories for better organization
-              </p>
-            </div>
-            <div className="mt-4 sm:mt-0">
-              <button
-                onClick={handleCreateCategory}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Add Category
-              </button>
-            </div>
-          </div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h1>Categories</h1>
+          <p>Organize your transactions with custom categories</p>
         </div>
+        <button className="btn btn-primary" onClick={() => { setEditingCategory(null); setShowModal(true); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <PlusIcon style={{ width: '16px', height: '16px' }} /> Add Category
+        </button>
+      </div>
 
-        {/* Filter Tabs */}
-        <div className="mb-6">
-          <div className="flex bg-[var(--color-surface)] rounded-lg p-1 shadow-sm">
-            <button
-              onClick={() => setFilterType('all')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                filterType === 'all'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              All Categories ({categories.length})
+      {/* Filter tabs */}
+      <div style={{ display: 'flex', background: 'var(--surface-1)', border: 'var(--card-border)', borderRadius: '12px', padding: '4px', gap: '2px', boxShadow: 'var(--card-shadow)', marginBottom: '20px', width: 'fit-content' }}>
+        <button style={tabStyle(filterType === 'all')} onClick={() => setFilterType('all')}>
+          All <span className="badge badge-info" style={{ fontSize: '10px' }}>{categories.length}</span>
+        </button>
+        <button style={tabStyle(filterType === 'income')} onClick={() => setFilterType('income')}>
+          📈 Income <span className="badge badge-up" style={{ fontSize: '10px' }}>{categories.filter((c) => c.is_income).length}</span>
+        </button>
+        <button style={tabStyle(filterType === 'expense')} onClick={() => setFilterType('expense')}>
+          📉 Expense <span className="badge badge-down" style={{ fontSize: '10px' }}>{categories.filter((c) => !c.is_income).length}</span>
+        </button>
+      </div>
+
+      {/* Grid */}
+      {filteredCategories.length === 0 ? (
+        <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: '52px', marginBottom: '14px' }}>🏷️</div>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No categories</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+            {filterType === 'all' ? 'Create your first category to start organizing transactions.' : `No ${filterType} categories found.`}
+          </p>
+          {filterType === 'all' && (
+            <button className="btn btn-primary" onClick={() => { setEditingCategory(null); setShowModal(true); }}>
+              Add Category
             </button>
-            <button
-              onClick={() => setFilterType('income')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${
-                filterType === 'income'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-              Income ({categories.filter(c => c.is_income).length})
-            </button>
-            <button
-              onClick={() => setFilterType('expense')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center ${
-                filterType === 'expense'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              <ArrowTrendingDownIcon className="h-4 w-4 mr-1" />
-              Expenses ({categories.filter(c => !c.is_income).length})
-            </button>
-          </div>
+          )}
         </div>
-
-        {/* Categories Grid */}
-        {filteredCategories.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-[var(--color-primary)] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CurrencyDollarIcon className="h-12 w-12 text-[var(--color-primary)]" />
-            </div>
-            <h3 className="text-xl font-semibold text-[var(--color-text)] mb-2">No categories</h3>
-            <p className="text-[var(--color-muted)] mb-6 max-w-md mx-auto">
-              {filterType === 'all' 
-                ? 'Get started by creating your first category to organize your transactions.'
-                : `No ${filterType} categories found.`
-              }
-            </p>
-            {filterType === 'all' && (
-              <button
-                onClick={handleCreateCategory}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Add Category
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredCategories.map((category) => (
-              <div
-                key={category.id}
-                className="bg-[var(--color-card)] overflow-hidden shadow-sm rounded-xl border border-[var(--color-border)] hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div
-                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg"
-                        style={{ backgroundColor: getCategoryColor(category) }}
-                      >
-                        {getCategoryIcon(category)}
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '14px' }}>
+          {filteredCategories.map((cat, i) => {
+            const color = cat.color || CAT_COLORS[i % CAT_COLORS.length];
+            const icon = cat.icon || (cat.is_income ? '💰' : '💸');
+            return (
+              <div key={cat.id} className="card" style={{ padding: '18px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="cat-ic" style={{ background: `${color}22`, color, width: '42px', height: '42px', fontSize: '20px' }}>
+                      {icon}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {cat.name}
                       </div>
-                      <div className="ml-4">
-                        <h3 className="text-lg font-medium text-[var(--color-text)]">
-                          {category.name}
-                        </h3>
-                        <div className="flex items-center mt-1">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              category.is_income
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {category.is_income ? 'Income' : 'Expense'}
-                          </span>
-                          {category.parent && (
-                            <span className="ml-2 text-xs text-[var(--color-muted)]">
-                              Subcategory of {category.parent.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <span className={`badge badge-${cat.is_income ? 'up' : 'down'}`} style={{ fontSize: '10px', marginTop: '4px' }}>
+                        {cat.is_income ? 'Income' : 'Expense'}
+                      </span>
                     </div>
                   </div>
-                  
-                  {category.description && (
-                    <p className="mt-3 text-sm text-[var(--color-muted)] line-clamp-2">
-                      {category.description}
-                    </p>
-                  )}
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="text-sm text-[var(--color-muted)]">
-                      {category.transactions_count || 0} transactions
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditCategory(category)}
-                        className="p-1 text-[var(--color-muted)] hover:text-[var(--color-primary)] transition-colors"
-                        title="Edit category"
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(category)}
-                        className="p-1 text-[var(--color-muted)] hover:text-red-600 transition-colors"
-                        title="Delete category"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => { setEditingCategory(cat); setShowModal(true); }} title="Edit">
+                      <PencilIcon style={{ width: '14px', height: '14px' }} />
+                    </button>
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => { setDeletingCategory(cat); setShowDeleteModal(true); }} title="Delete"
+                      style={{ color: 'var(--expense)' }}>
+                      <TrashIcon style={{ width: '14px', height: '14px' }} />
+                    </button>
                   </div>
                 </div>
+                {cat.description && (
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }} className="line-clamp-2">{cat.description}</p>
+                )}
+                {cat.parent && (
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Sub of {cat.parent.name}</p>
+                )}
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  {cat.transactions_count || 0} transactions
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
+      )}
 
-        {/* Category Modal */}
-        {showModal && (
-          <CategoryModal
-            isOpen={showModal}
-            onClose={() => setShowModal(false)}
-            onSave={handleSaveCategory}
-            category={editingCategory}
-          />
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && deletingCategory && (
-          <DeleteConfirmModal
-            isOpen={showDeleteModal}
-            onClose={() => setShowDeleteModal(false)}
-            onConfirm={handleConfirmDelete}
-            title="Delete Category"
-            message={`Are you sure you want to delete "${deletingCategory.name}"? This action cannot be undone.`}
-          />
-        )}
-      </div>
+      {showModal && (
+        <CategoryModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={handleSaveCategory} category={editingCategory} />
+      )}
+      {showDeleteModal && deletingCategory && (
+        <DeleteConfirmModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleConfirmDelete}
+          title="Delete Category" message={`Delete "${deletingCategory.name}"? This cannot be undone.`} />
+      )}
     </div>
   );
 };
 
-export default Categories; 
+export default Categories;

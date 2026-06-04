@@ -1,0 +1,20 @@
+# Development Dockerfile for React Frontend
+FROM node:18-alpine
+
+# Set work directory
+WORKDIR /app
+
+# Copy package files
+COPY finance-frontend/package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy source code
+COPY finance-frontend/ .
+
+# Expose port
+EXPOSE 5173
+
+# Default command for development
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"] 

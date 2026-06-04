@@ -1,146 +1,84 @@
-import React from 'react';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+const CAT_COLORS = ['#6366F1','#10B981','#F43F5E','#F59E0B','#8B5CF6','#0EA5E9','#14B8A6','#F97316'];
+const CAT_BG = ['rgba(99,102,241,0.18)','rgba(16,185,129,0.18)','rgba(244,63,94,0.18)','rgba(245,158,11,0.18)','rgba(139,92,246,0.18)','rgba(14,165,233,0.18)','rgba(20,184,166,0.18)','rgba(249,115,22,0.18)'];
+const fmt = (n) => new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n ?? 0);
+
 const CategoryPieChart = ({ data = [], title }) => {
+  const total = data.reduce((s, i) => s + (i.value || i.amount || 0), 0);
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '66%',
     plugins: {
       legend: {
         position: 'right',
         labels: {
-          color: 'var(--color-muted)',
-          font: {
-            size: 12,
-            weight: '500',
-          },
-          padding: 20,
+          color: 'var(--text-secondary)',
+          font: { family: 'var(--font-body)', size: 12, weight: '500' },
+          padding: 14,
           usePointStyle: true,
           pointStyle: 'circle',
         },
       },
-      title: {
-        display: !!title,
-        text: title,
-        color: 'var(--color-text)',
-        font: {
-          size: 16,
-          weight: 'bold',
-        },
-      },
       tooltip: {
-        backgroundColor: 'var(--color-surface)',
-        titleColor: 'var(--color-text)',
-        bodyColor: 'var(--color-text)',
-        borderColor: 'var(--color-border)',
+        backgroundColor: 'var(--surface-2)',
+        titleColor: 'var(--text-primary)',
+        bodyColor: 'var(--text-secondary)',
+        borderColor: 'var(--border-subtle)',
         borderWidth: 1,
-        cornerRadius: 8,
-        displayColors: true,
+        cornerRadius: 10,
         callbacks: {
-          label: function(context) {
-            const label = context.label || '';
-            const value = context.raw || 0;
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-            return `${label}: $${value.toFixed(2)} (${percentage}%)`;
-          },
+          label: (ctx) => ` PKR ${fmt(ctx.raw)} (${total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0}%)`,
         },
       },
     },
-    animation: {
-      animateRotate: true,
-      animateScale: true,
-      duration: 1000,
-      easing: 'easeInOutQuart',
-    },
-  };
-
-  // Enhanced color palette with better contrast
-  const colors = [
-    '#3B82F6', // blue
-    '#EF4444', // red
-    '#10B981', // green
-    '#F59E0B', // yellow
-    '#8B5CF6', // purple
-    '#06B6D4', // cyan
-    '#F97316', // orange
-    '#EC4899', // pink
-    '#6366F1', // indigo
-    '#84CC16', // lime
-  ];
-
-  const chartData = {
-    labels: data.map(item => item.name || item.category),
-    datasets: [
-      {
-        data: data.map(item => item.value || item.amount),
-        backgroundColor: colors.slice(0, data.length),
-        borderColor: 'rgb(255, 255, 255)',
-        borderWidth: 2,
-        hoverBorderColor: 'rgb(255, 255, 255)',
-        hoverBorderWidth: 3,
-      },
-    ],
+    animation: { animateRotate: true, animateScale: true, duration: 900 },
   };
 
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-center h-80">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">No expense data available</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Add some transactions to see your spending breakdown</p>
-          </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '200px' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '40px', marginBottom: '8px' }}>🍩</div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No expense data yet</p>
         </div>
       </div>
     );
   }
 
+  const chartData = {
+    labels: data.map((i) => i.name || i.category),
+    datasets: [{
+      data: data.map((i) => i.value || i.amount),
+      backgroundColor: CAT_BG.slice(0, data.length),
+      borderColor: CAT_COLORS.slice(0, data.length),
+      borderWidth: 2,
+      hoverOffset: 6,
+    }],
+  };
+
   return (
-    <div className="bg-[var(--color-card)] rounded-2xl p-6 shadow-lg border border-[var(--color-border)] w-full h-full flex flex-col">
-      <div className="relative w-full" style={{height: 'min(320px,40vw)'}}>
-        <Pie options={options} data={chartData} style={{width: '100%', height: '100%'}} />
-        {/* Summary overlay for small screens */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none lg:hidden">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[var(--color-text)]">
-              ${data.reduce((sum, item) => sum + (item.value || item.amount), 0).toFixed(2)}
-            </div>
-            <div className="text-sm text-[var(--color-muted)]">Total Expenses</div>
-          </div>
+    <div style={{ position: 'relative', height: '100%', minHeight: '200px' }}>
+      <Doughnut options={options} data={chartData} />
+      <div style={{
+        position: 'absolute', top: '50%', left: '30%',
+        transform: 'translate(-50%, -50%)',
+        textAlign: 'center', pointerEvents: 'none',
+      }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+          PKR {fmt(total)}
         </div>
-      </div>
-      {/* Mobile-friendly legend */}
-      <div className="mt-4 lg:hidden">
-        <div className="grid grid-cols-2 gap-2">
-          {data.slice(0, 6).map((item, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: colors[index] }}
-              ></div>
-              <span className="text-[var(--color-muted)] truncate">
-                {item.name || item.category}
-              </span>
-            </div>
-          ))}
+        <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Total
         </div>
       </div>
     </div>
   );
 };
 
-export default CategoryPieChart; 
+export default CategoryPieChart;
