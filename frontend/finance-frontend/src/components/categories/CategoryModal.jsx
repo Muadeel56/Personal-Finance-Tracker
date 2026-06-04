@@ -52,38 +52,33 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
-    // Clear error when user starts typing
+
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Category name is required';
     }
-    
+
     if (formData.name.length > 100) {
       newErrors.name = 'Category name must be less than 100 characters';
     }
-    
+
     if (formData.description.length > 500) {
       newErrors.description = 'Description must be less than 500 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (validateForm()) {
       onSave(formData);
     }
@@ -101,217 +96,200 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Backdrop */}
-        <div 
-          className="fixed inset-0 bg-black/50 transition-opacity" 
-          onClick={onClose}
-        ></div>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      {/* Backdrop */}
+      <div
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+        onClick={onClose}
+      />
 
-        {/* Modal Content */}
-        <div 
-          className="relative inline-block align-bottom bg-[var(--color-card)] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-[var(--color-border)]"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-[var(--color-text)]">
-                {category ? 'Edit Category' : 'Create Category'}
-              </h3>
+      {/* Modal panel */}
+      <div
+        style={{
+          position: 'relative', zIndex: 1,
+          width: '100%', maxWidth: '540px',
+          background: 'var(--surface-1)',
+          border: 'var(--card-border)',
+          borderRadius: '16px',
+          padding: '28px',
+          boxShadow: 'var(--card-shadow)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px' }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+            {category ? 'Edit Category' : 'Create Category'}
+          </h3>
+          <button onClick={onClose} className="btn btn-ghost btn-icon btn-sm">
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Category Name */}
+          <div>
+            <label htmlFor="name" className="field-label">Category Name *</label>
+            <div className={`field${errors.name ? ' error' : ''}`}>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="e.g., Groceries, Salary, Entertainment"
+              />
+            </div>
+            {errors.name && (
+              <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--expense)' }}>{errors.name}</p>
+            )}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label htmlFor="description" className="field-label">Description</label>
+            <div className={`field${errors.description ? ' error' : ''}`} style={{ height: 'auto', alignItems: 'flex-start', padding: '10px 14px' }}>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows="3"
+                style={{ width: '100%', resize: 'vertical', minHeight: '72px' }}
+                placeholder="Optional description for this category"
+              />
+            </div>
+            {errors.description && (
+              <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--expense)' }}>{errors.description}</p>
+            )}
+          </div>
+
+          {/* Category Type */}
+          <div>
+            <label className="field-label">Category Type</label>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="is_income"
+                  checked={!formData.is_income}
+                  onChange={() => setFormData(prev => ({ ...prev, is_income: false }))}
+                  style={{ accentColor: 'var(--accent)', marginRight: '8px' }}
+                />
+                <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Expense</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="is_income"
+                  checked={formData.is_income}
+                  onChange={() => setFormData(prev => ({ ...prev, is_income: true }))}
+                  style={{ accentColor: 'var(--accent)', marginRight: '8px' }}
+                />
+                <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Income</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Color Selection */}
+          <div>
+            <label className="field-label">Color</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--border-subtle)', cursor: 'pointer', backgroundColor: formData.color, flexShrink: 0 }}
+                onClick={() => setShowColorPicker(!showColorPicker)}
+              />
               <button
-                onClick={onClose}
-                className="text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
+                type="button"
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
-                <XMarkIcon className="h-6 w-6" />
+                <EyeDropperIcon style={{ width: '16px', height: '16px' }} />
+                Choose Color
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              {/* Category Name */}
-              <div className="mb-4">
-                <label htmlFor="name" className="block text-sm font-medium text-[var(--color-text)] mb-1">
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-surface)] text-[var(--color-text)] ${
-                    errors.name ? 'border-red-300' : 'border-[var(--color-border)]'
-                  }`}
-                  placeholder="e.g., Groceries, Salary, Entertainment"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text)] mb-1">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-surface)] text-[var(--color-text)] ${
-                    errors.description ? 'border-red-300' : 'border-[var(--color-border)]'
-                  }`}
-                  placeholder="Optional description for this category"
-                />
-                {errors.description && (
-                  <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-                )}
-              </div>
-
-              {/* Category Type */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                  Category Type
-                </label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="is_income"
-                      checked={!formData.is_income}
-                      onChange={() => setFormData(prev => ({ ...prev, is_income: false }))}
-                      className="h-4 w-4 text-[var(--color-primary)] focus:ring-[var(--color-primary)] border-[var(--color-border)] bg-[var(--color-surface)]"
-                    />
-                    <span className="ml-2 text-sm text-[var(--color-text)]">Expense</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="is_income"
-                      checked={formData.is_income}
-                      onChange={() => setFormData(prev => ({ ...prev, is_income: true }))}
-                      className="h-4 w-4 text-[var(--color-primary)] focus:ring-[var(--color-primary)] border-[var(--color-border)] bg-[var(--color-surface)]"
-                    />
-                    <span className="ml-2 text-sm text-[var(--color-text)]">Income</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Color Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                  Color
-                </label>
-                <div className="flex items-center space-x-2">
-                  <div
-                    className="w-8 h-8 rounded-full border-2 border-[var(--color-border)] cursor-pointer"
-                    style={{ backgroundColor: formData.color }}
-                    onClick={() => setShowColorPicker(!showColorPicker)}
-                  ></div>
-                  <button
-                    type="button"
-                    onClick={() => setShowColorPicker(!showColorPicker)}
-                    className="flex items-center text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                  >
-                    <EyeDropperIcon className="h-4 w-4 mr-1" />
-                    Choose Color
-                  </button>
-                </div>
-                
-                {showColorPicker && (
-                  <div className="mt-2 p-3 bg-[var(--color-surface)] rounded-md border border-[var(--color-border)]">
-                    <div className="grid grid-cols-5 gap-2">
-                      {predefinedColors.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => handleColorSelect(color)}
-                          className="w-8 h-8 rounded-full border-2 border-[var(--color-border)] hover:border-[var(--color-text)] transition-colors"
-                          style={{ backgroundColor: color }}
-                        ></button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Icon Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                  Icon
-                </label>
-                <div className="grid grid-cols-10 gap-2 max-h-32 overflow-y-auto">
-                  {predefinedIcons.map((icon) => (
+            {showColorPicker && (
+              <div style={{ marginTop: '8px', padding: '12px', background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+                  {predefinedColors.map((color) => (
                     <button
-                      key={icon}
+                      key={color}
                       type="button"
-                      onClick={() => handleIconSelect(icon)}
-                      className={`w-8 h-8 rounded-md border-2 text-lg hover:bg-[var(--color-surface)] transition-colors ${
-                        formData.icon === icon ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)]'
-                      }`}
-                    >
-                      {icon}
-                    </button>
+                      onClick={() => handleColorSelect(color)}
+                      style={{
+                        width: '32px', height: '32px', borderRadius: '50%',
+                        border: formData.color === color ? '2px solid var(--accent)' : '2px solid var(--border-subtle)',
+                        backgroundColor: color, cursor: 'pointer',
+                      }}
+                    />
                   ))}
                 </div>
-                {formData.icon && (
-                  <p className="mt-2 text-sm text-[var(--color-muted)]">
-                    Selected icon: {formData.icon}
-                  </p>
-                )}
               </div>
-
-              {/* Preview */}
-              <div className="mb-6 p-4 bg-[var(--color-surface)] rounded-md border border-[var(--color-border)]">
-                <h4 className="text-sm font-medium text-[var(--color-text)] mb-2">Preview</h4>
-                <div className="flex items-center">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg"
-                    style={{ backgroundColor: formData.color }}
-                  >
-                    {formData.icon || (formData.is_income ? '💰' : '💸')}
-                  </div>
-                  <div className="ml-3">
-                    <p className="font-medium text-[var(--color-text)]">
-                      {formData.name || 'Category Name'}
-                    </p>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        formData.is_income
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                      }`}
-                    >
-                      {formData.is_income ? 'Income' : 'Expense'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-bg)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] border border-transparent rounded-md hover:bg-[var(--color-primary)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors"
-                >
-                  {category ? 'Update Category' : 'Create Category'}
-                </button>
-              </div>
-            </form>
+            )}
           </div>
-        </div>
+
+          {/* Icon Selection */}
+          <div>
+            <label className="field-label">Icon</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '8px', maxHeight: '128px', overflowY: 'auto' }}>
+              {predefinedIcons.map((icon) => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => handleIconSelect(icon)}
+                  style={
+                    formData.icon === icon
+                      ? { width: '32px', height: '32px', borderRadius: '8px', border: '2px solid var(--accent)', background: 'var(--accent-glow)', fontSize: '18px', cursor: 'pointer' }
+                      : { width: '32px', height: '32px', borderRadius: '8px', border: '2px solid var(--border-subtle)', background: 'none', fontSize: '18px', cursor: 'pointer' }
+                  }
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+            {formData.icon && (
+              <p style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                Selected icon: {formData.icon}
+              </p>
+            )}
+          </div>
+
+          {/* Preview */}
+          <div style={{ padding: '16px', background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', marginTop: 0 }}>Preview</h4>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div
+                style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', backgroundColor: formData.color, flexShrink: 0 }}
+              >
+                {formData.icon || (formData.is_income ? '💰' : '💸')}
+              </div>
+              <div style={{ marginLeft: '12px' }}>
+                <p style={{ fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+                  {formData.name || 'Category Name'}
+                </p>
+                <span className={`badge ${formData.is_income ? 'badge-up' : 'badge-down'}`}>
+                  {formData.is_income ? 'Income' : 'Expense'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
+            <button type="button" onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+              {category ? 'Update Category' : 'Create Category'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-export default CategoryModal; 
+export default CategoryModal;
