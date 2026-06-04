@@ -1,259 +1,113 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/common/Button/Button';
+
+const SettingRow = ({ title, description, children }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+    <div>
+      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{title}</div>
+      {description && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' }}>{description}</div>}
+    </div>
+    {children}
+  </div>
+);
+
+const Toggle = ({ on, onToggle }) => (
+  <button
+    type="button"
+    className={`switch ${on ? 'on' : ''}`}
+    onClick={onToggle}
+    aria-pressed={on}
+  >
+    <span className="knob" />
+  </button>
+);
 
 const Settings = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-    weekly: true,
-    monthly: true
-  });
+  const [notifications, setNotifications] = useState({ email: true, push: false, weekly: true, monthly: true });
 
-  const handleNotificationChange = (key) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      logout();
-    }
-  };
+  const toggle = (key) => setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--color-text)]">Settings</h1>
-          <p className="mt-2 text-[var(--color-muted)]">
-            Customize your experience and manage your preferences
-          </p>
+    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div className="page-header">
+        <h1>Settings</h1>
+        <p>Customize your experience and manage preferences</p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Appearance */}
+        <div className="card" style={{ padding: '22px 24px' }}>
+          <div className="section-title" style={{ marginBottom: '4px' }}>Appearance</div>
+          <SettingRow title="Theme" description="Switch between light and dark mode">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Light</span>
+              <Toggle on={isDarkMode} onToggle={toggleTheme} />
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Dark</span>
+            </div>
+          </SettingRow>
         </div>
 
-        <div className="space-y-6">
-          {/* Appearance Settings */}
-          <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Appearance</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Theme</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Choose between light and dark mode
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-[var(--color-muted)]">Light</span>
-                  <button
-                    onClick={toggleTheme}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      isDarkMode ? 'bg-[var(--color-primary)]' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        isDarkMode ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                  <span className="text-sm text-[var(--color-muted)]">Dark</span>
-                </div>
-              </div>
+        {/* Notifications */}
+        <div className="card" style={{ padding: '22px 24px' }}>
+          <div className="section-title" style={{ marginBottom: '4px' }}>Notifications</div>
+          <SettingRow title="Email Notifications" description="Receive updates via email">
+            <Toggle on={notifications.email} onToggle={() => toggle('email')} />
+          </SettingRow>
+          <SettingRow title="Push Notifications" description="Receive browser notifications">
+            <Toggle on={notifications.push} onToggle={() => toggle('push')} />
+          </SettingRow>
+          <SettingRow title="Weekly Reports" description="Get weekly financial summaries">
+            <Toggle on={notifications.weekly} onToggle={() => toggle('weekly')} />
+          </SettingRow>
+          <SettingRow title="Monthly Reports" description="Get monthly financial summaries">
+            <Toggle on={notifications.monthly} onToggle={() => toggle('monthly')} />
+          </SettingRow>
+        </div>
+
+        {/* Data & Privacy */}
+        <div className="card" style={{ padding: '22px 24px' }}>
+          <div className="section-title" style={{ marginBottom: '4px' }}>Data &amp; Privacy</div>
+          <SettingRow title="Export Data" description="Download all your financial data as CSV">
+            <button className="btn btn-secondary btn-sm">Export</button>
+          </SettingRow>
+          <SettingRow title="Delete Account" description="Permanently delete your account and all data">
+            <button className="btn btn-danger btn-sm">Delete</button>
+          </SettingRow>
+        </div>
+
+        {/* Account Actions */}
+        <div className="card" style={{ padding: '22px 24px' }}>
+          <div className="section-title" style={{ marginBottom: '4px' }}>Account</div>
+          <SettingRow title="Change Password" description="Update your account password">
+            <button className="btn btn-secondary btn-sm">Change</button>
+          </SettingRow>
+          <SettingRow title="Sign out" description="Sign out of your account on this device">
+            <button className="btn btn-ghost btn-sm" onClick={() => { if (window.confirm('Sign out?')) logout(); }}>
+              Sign out
+            </button>
+          </SettingRow>
+        </div>
+
+        {/* System Info */}
+        <div className="card" style={{ padding: '22px 24px' }}>
+          <div className="section-title" style={{ marginBottom: '14px' }}>System Information</div>
+          {[
+            { label: 'App version', value: '1.0.0' },
+            { label: 'Last updated', value: new Date().toLocaleDateString() },
+            { label: 'Account ID', value: user?.id || 'N/A', mono: true },
+          ].map(({ label, value, mono }) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '13px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+              <span className={mono ? 'num' : ''} style={{ color: 'var(--text-primary)' }}>{value}</span>
             </div>
-          </div>
-
-          {/* Notification Settings */}
-          <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Notifications</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Email Notifications</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Receive updates via email
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('email')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    notifications.email ? 'bg-[var(--color-primary)]' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notifications.email ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Push Notifications</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Receive browser notifications
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('push')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    notifications.push ? 'bg-[var(--color-primary)]' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notifications.push ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Weekly Reports</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Get weekly financial summaries
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('weekly')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    notifications.weekly ? 'bg-[var(--color-primary)]' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notifications.weekly ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Monthly Reports</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Get monthly financial summaries
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('monthly')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    notifications.monthly ? 'bg-[var(--color-primary)]' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notifications.monthly ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Data & Privacy */}
-          <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Data & Privacy</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Export Data</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Download your financial data
-                  </p>
-                </div>
-                <Button
-                  className="bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-bg)]"
-                >
-                  Export
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Delete Account</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Permanently delete your account and data
-                  </p>
-                </div>
-                <Button
-                  className="bg-red-600 text-white hover:bg-red-700"
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Account Actions */}
-          <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Account Actions</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Change Password</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Update your account password
-                  </p>
-                </div>
-                <Button
-                  className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90"
-                >
-                  Change
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-medium">Logout</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Sign out of your account
-                  </p>
-                </div>
-                <Button
-                  onClick={handleLogout}
-                  className="bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-bg)]"
-                >
-                  Logout
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* System Information */}
-          <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">System Information</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-[var(--color-muted)]">App Version</span>
-                <span className="text-[var(--color-text)]">1.0.0</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--color-muted)]">Last Updated</span>
-                <span className="text-[var(--color-text)]">
-                  {new Date().toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--color-muted)]">Account ID</span>
-                <span className="text-[var(--color-text)] font-mono text-sm">
-                  {user?.id || 'N/A'}
-                </span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   );
 };
 
-export default Settings; 
+export default Settings;

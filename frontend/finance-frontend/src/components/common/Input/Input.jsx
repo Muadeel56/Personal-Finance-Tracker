@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const Input = ({
@@ -12,36 +11,27 @@ const Input = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition px-3 py-2 sm:text-sm';
-  const errorStyles = 'border-[var(--color-danger, #ef4444)] text-[var(--color-danger, #ef4444)] placeholder-[var(--color-danger, #ef4444)] focus:border-[var(--color-danger, #ef4444)] focus:ring-[var(--color-danger, #ef4444)]';
-  const disabledStyles = 'bg-[var(--color-muted)] bg-opacity-10 cursor-not-allowed';
-  const widthClass = fullWidth ? 'w-full' : '';
-
   return (
-    <div className={`${widthClass} ${className}`}>
+    <div style={fullWidth ? { width: '100%' } : {}} className={className}>
       {label && (
-        <label className="block text-sm font-medium text-[var(--color-text)] mb-1">
+        <label className="field-label">
           {label}
-          {required && <span className="text-[var(--color-danger, #ef4444)] ml-1">*</span>}
+          {required && <span style={{ color: 'var(--expense)', marginLeft: '3px' }}>*</span>}
         </label>
       )}
-      <input
-        type={type}
-        className={`
-          ${baseStyles}
-          ${error ? errorStyles : ''}
-          ${disabled ? disabledStyles : ''}
-          ${widthClass}
-        `}
-        disabled={disabled}
-        required={required}
-        aria-invalid={error ? 'true' : 'false'}
-        aria-describedby={error ? `${props.id}-error` : undefined}
-        {...props}
-      />
+      <div className={`field ${error ? 'error' : ''}`} style={disabled ? { opacity: 0.6 } : {}}>
+        <input
+          type={type}
+          disabled={disabled}
+          required={required}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={error ? `${props.id}-error` : undefined}
+          {...props}
+        />
+      </div>
       {(error || helperText) && (
         <p
-          className={`mt-1 text-sm ${error ? 'text-[var(--color-danger, #ef4444)]' : 'text-[var(--color-muted)]'}`}
+          style={{ marginTop: '4px', fontSize: '12px', color: error ? 'var(--expense)' : 'var(--text-muted)' }}
           id={error ? `${props.id}-error` : undefined}
         >
           {error || helperText}
@@ -63,4 +53,4 @@ Input.propTypes = {
   id: PropTypes.string,
 };
 
-export default Input; 
+export default Input;

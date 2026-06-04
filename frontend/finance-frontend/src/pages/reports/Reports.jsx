@@ -1,323 +1,198 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTransactions } from '../../contexts/TransactionContext';
+
+const fmt = (n) => `PKR ${Number(n).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
 const Reports = () => {
   const { transactions, loading } = useTransactions();
   const [timeRange, setTimeRange] = useState('current_month');
   const [reportType, setReportType] = useState('overview');
 
-  // Helper function to format currency in PKR
-  const formatCurrency = (amount) => {
-    return `PKR ${Number(amount).toLocaleString('en-PK', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  };
-
-  // Calculate income vs expenses
-  const income = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + Number(t.amount), 0);
-  const expenses = transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
+  const income   = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + Number(t.amount), 0);
+  const expenses = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
   const netIncome = income - expenses;
 
-  // Group transactions by category
-  const categoryData = transactions.reduce((acc, transaction) => {
-    const category = transaction.category?.name || 'Uncategorized';
-    const amount = Math.abs(Number(transaction.amount));
-    
-    if (!acc[category]) {
-      acc[category] = { income: 0, expenses: 0, count: 0 };
-    }
-    
-    if (transaction.amount > 0) {
-      acc[category].income += amount;
-    } else {
-      acc[category].expenses += amount;
-    }
-    acc[category].count += 1;
-    
+  const categoryData = transactions.reduce((acc, t) => {
+    const cat = t.category?.name || 'Uncategorized';
+    const amt = Math.abs(Number(t.amount));
+    if (!acc[cat]) acc[cat] = { income: 0, expenses: 0, count: 0 };
+    if (t.amount > 0) acc[cat].income += amt; else acc[cat].expenses += amt;
+    acc[cat].count += 1;
     return acc;
   }, {});
 
-  // Monthly trend data
-  const monthlyData = transactions.reduce((acc, transaction) => {
-    const date = new Date(transaction.date);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    
-    if (!acc[monthKey]) {
-      acc[monthKey] = { income: 0, expenses: 0, count: 0 };
-    }
-    
-    if (transaction.amount > 0) {
-      acc[monthKey].income += Number(transaction.amount);
-    } else {
-      acc[monthKey].expenses += Math.abs(Number(transaction.amount));
-    }
-    acc[monthKey].count += 1;
-    
+  const monthlyData = transactions.reduce((acc, t) => {
+    const d = new Date(t.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (!acc[key]) acc[key] = { income: 0, expenses: 0, count: 0 };
+    if (t.amount > 0) acc[key].income += Number(t.amount); else acc[key].expenses += Math.abs(Number(t.amount));
+    acc[key].count += 1;
     return acc;
   }, {});
 
   const sortedMonths = Object.keys(monthlyData).sort().slice(-6);
 
+  const tabStyle = (active) => ({
+    padding: '7px 14px', borderRadius: '9px', fontSize: '13px', fontWeight: 600,
+    fontFamily: 'var(--font-display)', border: 'none', cursor: 'pointer',
+    background: active ? 'var(--accent-grad)' : 'transparent',
+    color: active ? '#1A1206' : 'var(--text-secondary)',
+    transition: 'all 0.15s',
+  });
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[var(--color-bg)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="spinner" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[var(--color-text)]">Reports</h1>
-              <p className="mt-2 text-[var(--color-muted)]">
-                Analyze your financial data and track your progress
-              </p>
-            </div>
-            <div className="mt-4 sm:mt-0 flex gap-2">
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              >
-                <option value="current_month">Current Month</option>
-                <option value="previous_month">Previous Month</option>
-                <option value="current_year">Current Year</option>
-                <option value="all_time">All Time</option>
-              </select>
-            </div>
-          </div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h1>Reports</h1>
+          <p>Analyze your financial data and track progress</p>
         </div>
-
-        {/* Report Type Tabs */}
-        <div className="mb-8">
-          <div className="flex bg-[var(--color-surface)] rounded-lg p-1 shadow-sm">
-            <button
-              onClick={() => setReportType('overview')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                reportType === 'overview'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setReportType('categories')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                reportType === 'categories'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              Categories
-            </button>
-            <button
-              onClick={() => setReportType('trends')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                reportType === 'trends'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              Trends
-            </button>
-          </div>
+        <div className="field" style={{ width: 'auto', height: '40px' }}>
+          <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)} style={{ minWidth: '160px' }}>
+            <option value="current_month">Current Month</option>
+            <option value="previous_month">Previous Month</option>
+            <option value="current_year">Current Year</option>
+            <option value="all_time">All Time</option>
+          </select>
         </div>
+      </div>
 
-        {/* Overview Report */}
-        {reportType === 'overview' && (
-          <div className="space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <div className="flex items-center justify-between">
+      {/* Tabs */}
+      <div style={{ display: 'flex', background: 'var(--surface-1)', border: 'var(--card-border)', borderRadius: '12px', padding: '4px', gap: '2px', boxShadow: 'var(--card-shadow)', marginBottom: '20px', width: 'fit-content' }}>
+        {['overview', 'categories', 'trends'].map((t) => (
+          <button key={t} style={tabStyle(reportType === t)} onClick={() => setReportType(t)}>
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {transactions.length === 0 ? (
+        <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: '52px', marginBottom: '14px' }}>📊</div>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No data yet</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Add transactions to see reports.</p>
+        </div>
+      ) : (
+        <>
+          {/* Overview */}
+          {reportType === 'overview' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                {[
+                  { label: 'Total Income', value: fmt(income), icon: '📈', iconBg: 'var(--income-muted)', color: 'var(--income)' },
+                  { label: 'Total Expenses', value: fmt(expenses), icon: '📉', iconBg: 'var(--expense-muted)', color: 'var(--expense)' },
+                  { label: 'Net Income', value: fmt(netIncome), icon: netIncome >= 0 ? '💰' : '💸', iconBg: netIncome >= 0 ? 'var(--income-muted)' : 'var(--expense-muted)', color: netIncome >= 0 ? 'var(--income)' : 'var(--expense)' },
+                ].map((c) => (
+                  <div key={c.label} className="card" style={{ padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div className="t-label dim" style={{ marginBottom: '6px' }}>{c.label}</div>
+                      <div className="num" style={{ fontSize: '22px', fontWeight: 700, color: c.color }}>{c.value}</div>
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: c.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>{c.icon}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="card" style={{ padding: '22px' }}>
+                <div className="section-title" style={{ marginBottom: '18px' }}>Transaction Summary</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-muted)]">Total Income</p>
-                    <p className="text-2xl font-bold text-green-600 mt-1">
-                      {formatCurrency(income)}
-                    </p>
-                  </div>
-                  <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span className="text-green-600 text-xl">📈</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--color-muted)]">Total Expenses</p>
-                    <p className="text-2xl font-bold text-red-600 mt-1">
-                      {formatCurrency(expenses)}
-                    </p>
-                  </div>
-                  <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <span className="text-red-600 text-xl">📉</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--color-muted)]">Net Income</p>
-                    <p className={`text-2xl font-bold mt-1 ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(netIncome)}
-                    </p>
-                  </div>
-                  <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${netIncome >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                    <span className={`text-xl ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {netIncome >= 0 ? '💰' : '💸'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Transaction Summary */}
-            <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Transaction Summary</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium text-[var(--color-text)] mb-4">Income Breakdown</h3>
-                  <div className="space-y-3">
-                    {Object.entries(categoryData)
-                      .filter(([_, data]) => data.income > 0)
-                      .sort(([_, a], [__, b]) => b.income - a.income)
-                      .slice(0, 5)
-                      .map(([category, data]) => (
-                        <div key={category} className="flex justify-between items-center">
-                          <span className="text-[var(--color-text)]">{category}</span>
-                          <span className="font-semibold text-green-600">{formatCurrency(data.income)}</span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-[var(--color-text)] mb-4">Expense Breakdown</h3>
-                  <div className="space-y-3">
-                    {Object.entries(categoryData)
-                      .filter(([_, data]) => data.expenses > 0)
-                      .sort(([_, a], [__, b]) => b.expenses - a.expenses)
-                      .slice(0, 5)
-                      .map(([category, data]) => (
-                        <div key={category} className="flex justify-between items-center">
-                          <span className="text-[var(--color-text)]">{category}</span>
-                          <span className="font-semibold text-red-600">{formatCurrency(data.expenses)}</span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Categories Report */}
-        {reportType === 'categories' && (
-          <div className="space-y-6">
-            <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Category Analysis</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-[var(--color-border)]">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-muted)]">Category</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-[var(--color-muted)]">Income</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-[var(--color-muted)]">Expenses</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-[var(--color-muted)]">Net</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-[var(--color-muted)]">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(categoryData)
-                      .sort(([_, a], [__, b]) => (b.income + b.expenses) - (a.income + a.expenses))
-                      .map(([category, data]) => (
-                        <tr key={category} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface)]">
-                          <td className="py-3 px-4 text-[var(--color-text)]">{category}</td>
-                          <td className="py-3 px-4 text-right text-green-600 font-medium">
-                            {formatCurrency(data.income)}
-                          </td>
-                          <td className="py-3 px-4 text-right text-red-600 font-medium">
-                            {formatCurrency(data.expenses)}
-                          </td>
-                          <td className={`py-3 px-4 text-right font-medium ${
-                            data.income - data.expenses >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatCurrency(data.income - data.expenses)}
-                          </td>
-                          <td className="py-3 px-4 text-right text-[var(--color-muted)]">
-                            {data.count}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Trends Report */}
-        {reportType === 'trends' && (
-          <div className="space-y-6">
-            <div className="bg-[var(--color-card)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Monthly Trends</h2>
-              <div className="space-y-4">
-                {sortedMonths.map((month) => {
-                  const data = monthlyData[month];
-                  const net = data.income - data.expenses;
-                  return (
-                    <div key={month} className="flex items-center justify-between p-4 bg-[var(--color-surface)] rounded-lg">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-[var(--color-text)]">{month}</h3>
-                        <p className="text-sm text-[var(--color-muted)]">{data.count} transactions</p>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--income)', marginBottom: '12px', fontFamily: 'var(--font-display)' }}>Income by Category</div>
+                    {Object.entries(categoryData).filter(([, d]) => d.income > 0).sort(([, a], [, b]) => b.income - a.income).slice(0, 5).map(([cat, d]) => (
+                      <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '13px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>{cat}</span>
+                        <span className="num" style={{ color: 'var(--income)', fontWeight: 600 }}>{fmt(d.income)}</span>
                       </div>
-                      <div className="flex gap-8 text-sm">
-                        <div className="text-center">
-                          <div className="text-green-600 font-semibold">{formatCurrency(data.income)}</div>
-                          <div className="text-xs text-[var(--color-muted)]">Income</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-red-600 font-semibold">{formatCurrency(data.expenses)}</div>
-                          <div className="text-xs text-[var(--color-muted)]">Expenses</div>
-                        </div>
-                        <div className="text-center">
-                          <div className={`font-semibold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatCurrency(net)}
+                    ))}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--expense)', marginBottom: '12px', fontFamily: 'var(--font-display)' }}>Expenses by Category</div>
+                    {Object.entries(categoryData).filter(([, d]) => d.expenses > 0).sort(([, a], [, b]) => b.expenses - a.expenses).slice(0, 5).map(([cat, d]) => (
+                      <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '13px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>{cat}</span>
+                        <span className="num" style={{ color: 'var(--expense)', fontWeight: 600 }}>{fmt(d.expenses)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Categories */}
+          {reportType === 'categories' && (
+            <div className="card" style={{ padding: '22px', overflowX: 'auto' }}>
+              <div className="section-title" style={{ marginBottom: '18px' }}>Category Analysis</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    {['Category', 'Income', 'Expenses', 'Net', 'Count'].map((h, i) => (
+                      <th key={h} style={{ padding: '10px 12px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: i === 0 ? 'left' : 'right', fontFamily: 'var(--font-display)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(categoryData).sort(([, a], [, b]) => (b.income + b.expenses) - (a.income + a.expenses)).map(([cat, d]) => (
+                    <tr key={cat} style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'background 0.1s' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-2)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                      <td style={{ padding: '11px 12px', fontSize: '14px', color: 'var(--text-primary)' }}>{cat}</td>
+                      <td className="num" style={{ padding: '11px 12px', fontSize: '13px', color: 'var(--income)', textAlign: 'right', fontWeight: 600 }}>{fmt(d.income)}</td>
+                      <td className="num" style={{ padding: '11px 12px', fontSize: '13px', color: 'var(--expense)', textAlign: 'right', fontWeight: 600 }}>{fmt(d.expenses)}</td>
+                      <td className="num" style={{ padding: '11px 12px', fontSize: '13px', color: d.income - d.expenses >= 0 ? 'var(--income)' : 'var(--expense)', textAlign: 'right', fontWeight: 600 }}>{fmt(d.income - d.expenses)}</td>
+                      <td style={{ padding: '11px 12px', fontSize: '13px', color: 'var(--text-muted)', textAlign: 'right' }}>{d.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Trends */}
+          {reportType === 'trends' && (
+            <div className="card" style={{ padding: '22px' }}>
+              <div className="section-title" style={{ marginBottom: '18px' }}>Monthly Trends</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {sortedMonths.map((month) => {
+                  const d = monthlyData[month];
+                  const net = d.income - d.expenses;
+                  return (
+                    <div key={month} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: 'var(--surface-2)', borderRadius: '12px', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{month}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{d.count} transactions</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '24px' }}>
+                        {[
+                          { label: 'Income', v: d.income, color: 'var(--income)' },
+                          { label: 'Expenses', v: d.expenses, color: 'var(--expense)' },
+                          { label: 'Net', v: net, color: net >= 0 ? 'var(--income)' : 'var(--expense)' },
+                        ].map((s) => (
+                          <div key={s.label} style={{ textAlign: 'right' }}>
+                            <div className="num" style={{ fontSize: '14px', fontWeight: 700, color: s.color }}>{fmt(s.v)}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</div>
                           </div>
-                          <div className="text-xs text-[var(--color-muted)]">Net</div>
-                        </div>
+                        ))}
                       </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </div>
-        )}
-
-        {/* No Data State */}
-        {transactions.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-[var(--color-primary)] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-[var(--color-primary)] text-4xl">📊</span>
-            </div>
-            <h3 className="text-xl font-semibold text-[var(--color-text)] mb-2">No data available</h3>
-            <p className="text-[var(--color-muted)] mb-6 max-w-md mx-auto">
-              Start adding transactions to see detailed reports and analytics.
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
 
-export default Reports; 
+export default Reports;

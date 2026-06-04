@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import api from '../api/config';
 
@@ -96,7 +96,7 @@ export const TransactionProvider = ({ children }) => {
   const [state, dispatch] = useReducer(transactionReducer, initialState);
 
   // Fetch transactions
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       // Check if user is authenticated before making API calls
       const token = localStorage.getItem('access_token');
@@ -127,7 +127,7 @@ export const TransactionProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false }); // Ensure loading is false after error
       toast.error('Failed to fetch transactions');
     }
-  };
+  }, []);
 
   // Add transaction
   const addTransaction = async (transaction) => {

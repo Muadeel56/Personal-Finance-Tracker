@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Card from '../../components/common/Card/Card';
-import Input from '../../components/common/Input/Input';
-import Button from '../../components/common/Button/Button';
 import { useAuth } from '../../contexts/AuthContext';
+
+const SparkIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+  </svg>
+);
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,7 +24,7 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
     if (!formData.password) newErrors.password = 'Password is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -34,57 +37,113 @@ const Login = () => {
     try {
       await login(formData);
       navigate('/dashboard');
-    } catch (err) {
-      setErrors({ submit: 'Invalid email or password' });
+    } catch {
+      setErrors({ submit: 'Invalid email or password. Please try again.' });
     }
     setSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]">
-      <div className="max-w-md w-full">
-        <Card className="p-8 shadow-lg bg-[var(--color-surface)]">
-          <div className="mb-6 text-center">
-            <div className="text-3xl font-bold text-[var(--color-primary)] mb-2">Personal Finance Tracker</div>
-            <div className="text-lg text-[var(--color-muted)]">Sign in to your account</div>
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--bg-base)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+    }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '14px',
+            background: 'var(--accent-grad)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            color: '#1A1206', marginBottom: '16px',
+          }}>
+            <SparkIcon />
           </div>
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <Input
-              label="Email address"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              required
-            />
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              required
-            />
-            {errors.submit && <p className="text-sm text-red-500">{errors.submit}</p>}
-            <Button
+          <h1 style={{
+            fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 700,
+            color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em',
+          }}>
+            Finance Tracker
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '6px' }}>
+            Sign in to your account
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="card" style={{ padding: '32px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div>
+              <label className="field-label">Email address</label>
+              <div className={`field ${errors.email ? 'error' : ''}`}>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                />
+              </div>
+              {errors.email && <p className="form-error">{errors.email}</p>}
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
+                <label className="field-label" style={{ margin: 0 }}>Password</label>
+                <Link to="/forgot-password" style={{ fontSize: '12px', color: 'var(--accent)', textDecoration: 'none' }}>
+                  Forgot password?
+                </Link>
+              </div>
+              <div className={`field ${errors.password ? 'error' : ''}`}>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+              {errors.password && <p className="form-error">{errors.password}</p>}
+            </div>
+
+            {errors.submit && (
+              <div style={{
+                padding: '10px 14px', borderRadius: '10px',
+                background: 'var(--expense-muted)', color: 'var(--expense)',
+                fontSize: '13px', fontWeight: 500,
+              }}>
+                {errors.submit}
+              </div>
+            )}
+
+            <button
               type="submit"
-              variant="primary"
-              fullWidth
+              className="btn btn-primary"
+              style={{ width: '100%', height: '48px', fontSize: '15px', marginTop: '4px' }}
               disabled={loading || submitting}
             >
-              {(loading || submitting) ? 'Signing in...' : 'Sign in'}
-            </Button>
+              {(loading || submitting) ? 'Signing in…' : 'Sign in'}
+            </button>
           </form>
-          <div className="mt-6 text-center text-sm">
-            <span className="text-[var(--color-muted)]">Don't have an account? </span>
-            <Link to="/register" className="text-[var(--color-primary)] hover:underline">Sign up</Link>
-          </div>
-        </Card>
+        </div>
+
+        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          Don't have an account?{' '}
+          <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );
 };
 
-export default Login; 
+export default Login;

@@ -1,8 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Card from '../../components/common/Card/Card';
-import Input from '../../components/common/Input/Input';
-import Button from '../../components/common/Button/Button';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -13,100 +10,93 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (!email) {
-      setError('Email is required');
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Email is invalid');
-      return;
-    }
-
+    if (!email) { setError('Email is required'); return; }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Invalid email address'); return; }
     setIsLoading(true);
     try {
-      // TODO: Implement actual password reset request
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       setIsSubmitted(true);
-    } catch (error) {
+    } catch {
       setError('Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const pageStyle = {
+    minHeight: '100vh',
+    background: 'var(--bg-base)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '24px',
+  };
+
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] dark:bg-[var(--color-bg)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h2 className="mt-6 text-3xl font-extrabold text-[var(--color-text)]">
-              Check your email
-            </h2>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
-              We've sent password reset instructions to your email address.
-            </p>
-            <div className="mt-4">
-              <Link
-                to="/login"
-                className="font-medium text-[var(--color-primary)] hover:underline"
-              >
-                Return to login
-              </Link>
-            </div>
-          </div>
+      <div style={pageStyle}>
+        <div style={{ width: '100%', maxWidth: '420px', textAlign: 'center' }}>
+          <div style={{ fontSize: '52px', marginBottom: '16px' }}>📧</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
+            Check your email
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
+            We've sent password reset instructions to <strong>{email}</strong>
+          </p>
+          <Link to="/login" className="btn btn-primary">Return to login</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] dark:bg-[var(--color-bg)] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-[var(--color-text)]">
-            Reset your password
-          </h2>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
-            Enter your email address and we'll send you instructions to reset your password.
+    <div style={pageStyle}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+            Reset password
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '8px' }}>
+            Enter your email and we'll send reset instructions
           </p>
         </div>
 
-        <Card>
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <Input
-              label="Email address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={error}
-              required
-            />
+        <div className="card" style={{ padding: '32px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div>
+              <label className="field-label">Email address</label>
+              <div className={`field ${error ? 'error' : ''}`}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                />
+              </div>
+              {error && <p className="form-error">{error}</p>}
+            </div>
 
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              fullWidth
+              className="btn btn-primary"
+              style={{ width: '100%', height: '48px', fontSize: '15px' }}
               disabled={isLoading}
             >
-              {isLoading ? 'Sending...' : 'Send reset instructions'}
-            </Button>
-
-            <div className="text-center">
-              <Link
-                to="/login"
-                className="font-medium text-[var(--color-primary)] hover:underline"
-              >
-                Back to login
-              </Link>
-            </div>
+              {isLoading ? 'Sending…' : 'Send reset instructions'}
+            </button>
           </form>
-        </Card>
+        </div>
+
+        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+            ← Back to login
+          </Link>
+        </p>
       </div>
     </div>
   );
 };
 
-export default ForgotPassword; 
+export default ForgotPassword;

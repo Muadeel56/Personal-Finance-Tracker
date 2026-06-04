@@ -1,48 +1,36 @@
-import React from 'react';
-
-const BudgetProgress = ({ 
-  category, 
-  spent, 
-  budget, 
-  icon: Icon,
-  className = '' 
-}) => {
-  const percentage = Math.min((spent / budget) * 100, 100);
-  const isOverBudget = spent > budget;
-  const progressColor = isOverBudget 
-    ? 'bg-red-500' 
-    : percentage > 80 
-      ? 'bg-yellow-500' 
-      : 'bg-green-500';
+const BudgetProgress = ({ category, spent, budget, icon: Icon, className = '' }) => {
+  const pct = Math.min((spent / budget) * 100, 100);
+  const isOver = spent > budget;
+  const fillClass = isOver ? 'over' : pct > 80 ? 'warn' : 'green';
+  const statusColor = isOver ? 'var(--expense)' : pct > 80 ? 'var(--accent)' : 'var(--income)';
 
   return (
-    <div className={`bg-[var(--color-card)] rounded-xl p-4 shadow-sm border border-[var(--color-border)] ${className}`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+    <div className={`card ${className}`} style={{ padding: '16px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {Icon && (
-            <div className="p-2 bg-[var(--color-primary)] bg-opacity-10 rounded-lg">
-              <Icon className="h-5 w-5 text-[var(--color-primary)]" />
+            <div style={{ padding: '8px', background: 'var(--surface-2)', borderRadius: '9px', display: 'flex' }}>
+              <Icon style={{ width: '16px', height: '16px', color: 'var(--accent)' }} />
             </div>
           )}
-          <h3 className="font-medium text-[var(--color-text)]">{category}</h3>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+            {category}
+          </span>
         </div>
-        <div className="text-right">
-          <p className="text-sm font-medium text-[var(--color-text)]">
-            ${spent.toFixed(2)} / ${budget.toFixed(2)}
-          </p>
-          <p className="text-xs text-[var(--color-muted)]">
-            {isOverBudget ? 'Over budget' : `${percentage.toFixed(1)}% used`}
-          </p>
+        <div style={{ textAlign: 'right' }}>
+          <div className="num" style={{ fontSize: '13px', fontWeight: 600, color: statusColor }}>
+            PKR {spent.toFixed(0)} / {budget.toFixed(0)}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {isOver ? 'Over budget' : `${pct.toFixed(1)}% used`}
+          </div>
         </div>
       </div>
-      <div className="w-full h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
-        <div
-          className={`h-full ${progressColor} transition-all duration-300`}
-          style={{ width: `${percentage}%` }}
-        />
+      <div className="track">
+        <div className={`fill ${fillClass}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
 };
 
-export default BudgetProgress; 
+export default BudgetProgress;

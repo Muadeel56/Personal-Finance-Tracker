@@ -1,274 +1,165 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { 
-  PencilIcon, 
-  TrashIcon, 
-  ChevronUpIcon, 
-  ChevronDownIcon,
-  ArrowPathIcon,
-  DocumentArrowDownIcon
-} from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 
-const TransactionList = ({ 
-  transactions, 
-  onEdit, 
-  onDelete,
-  onSort,
-  sortField,
-  sortDirection,
-  onExport,
-  loading = false
+const CAT_COLORS = ['#6366F1','#10B981','#F43F5E','#F59E0B','#8B5CF6','#0EA5E9','#14B8A6','#F97316'];
+const CAT_BG = ['rgba(99,102,241,0.15)','rgba(16,185,129,0.15)','rgba(244,63,94,0.15)','rgba(245,158,11,0.15)','rgba(139,92,246,0.15)','rgba(14,165,233,0.15)','rgba(20,184,166,0.15)','rgba(249,115,22,0.15)'];
+
+const fmtAmt  = (n) => new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(n));
+const fmtDate = (d) => { try { return format(typeof d === 'string' ? parseISO(d) : d, 'MMM d, yyyy'); } catch { return d; } };
+const getCategoryName = (t) => typeof t.category === 'object' && t.category?.name ? t.category.name : `Cat ${t.category}`;
+
+const TransactionList = ({
+  transactions, onEdit, onDelete, onSort, sortField, sortDirection, onExport, loading = false,
 }) => {
-  const [selectedTransactions, setSelectedTransactions] = useState(new Set());
-  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [selectMode, setSelectMode] = useState(false);
 
-  // Helper function to format currency in PKR
-  const formatCurrency = (amount) => {
-    return `PKR ${Number(amount).toLocaleString('en-PK', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  };
-
-  // Helper function to get category name safely
-  const getCategoryName = (transaction) => {
-    if (typeof transaction.category === 'object' && transaction.category?.name) {
-      return transaction.category.name;
-    }
-    return `Category ${transaction.category}`;
-  };
-
-  // Helper function to get category badge
-  const getCategoryBadge = (transaction) => {
-    if (transaction.category && transaction.category.name) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
-          {transaction.category.icon && (
-            <span className="mr-1">{transaction.category.icon}</span>
-          )}
-          {transaction.category.name}
-        </span>
-      );
-    }
-    return <span className="text-[var(--color-muted)] text-sm">Uncategorized</span>;
-  };
-
-  const formatAmount = (amount, type) => {
-    const formattedAmount = formatCurrency(Math.abs(amount));
-    return (
-      <span className={`font-semibold ${type === 'EXPENSE' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-        {type === 'EXPENSE' ? '-' : '+'}{formattedAmount}
-      </span>
-    );
-  };
-
-  const formatDate = (dateString) => {
-    try {
-      const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
-      return format(date, 'MMM d, yyyy');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
-    }
-  };
-
-  const handleSort = (field) => {
-    onSort(field);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedTransactions.size === transactions.length) {
-      setSelectedTransactions(new Set());
-    } else {
-      setSelectedTransactions(new Set(transactions.map(t => t.id)));
-    }
-  };
-
-  const handleSelectTransaction = (id) => {
-    const newSelected = new Set(selectedTransactions);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedTransactions(newSelected);
-  };
-
-  const handleExport = () => {
-    const selectedData = transactions.filter(t => selectedTransactions.has(t.id));
-    onExport(selectedData);
-  };
+  const toggleAll = () => setSelected(selected.size === transactions.length ? new Set() : new Set(transactions.map((t) => t.id)));
+  const toggleOne = (id) => { const s = new Set(selected); s.has(id) ? s.delete(id) : s.add(id); setSelected(s); };
 
   const SortIcon = ({ field }) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="h-4 w-4 inline-block text-blue-600" />
-    ) : (
-      <ChevronDownIcon className="h-4 w-4 inline-block text-blue-600" />
-    );
+    return sortDirection === 'asc'
+      ? <ChevronUpIcon style={{ width: '12px', height: '12px', display: 'inline', marginLeft: '3px', color: 'var(--accent)' }} />
+      : <ChevronDownIcon style={{ width: '12px', height: '12px', display: 'inline', marginLeft: '3px', color: 'var(--accent)' }} />;
   };
+
+  const thStyle = (clickable) => ({
+    padding: '10px 14px',
+    fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)',
+    textTransform: 'uppercase', letterSpacing: '0.06em',
+    fontFamily: 'var(--font-display)',
+    cursor: clickable ? 'pointer' : 'default',
+    textAlign: 'left',
+    background: 'var(--surface-2)',
+    borderBottom: '1px solid var(--border-subtle)',
+    whiteSpace: 'nowrap',
+  });
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading transactions...</p>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', gap: '12px' }}>
+        <div className="spinner" style={{ width: '24px', height: '24px' }} />
+        <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading transactions…</span>
+      </div>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>No transactions found</h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Try adjusting the filters or add a new transaction.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[var(--color-card)] rounded-2xl shadow-lg border border-[var(--color-border)] overflow-hidden">
-      {/* Action Bar */}
-      <div className="p-4 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSelectMode(!isSelectMode)}
-              className="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] font-medium transition-colors"
-            >
-              {isSelectMode ? 'Cancel Selection' : 'Select Transactions'}
-            </button>
-            {isSelectMode && (
-              <button
-                onClick={handleSelectAll}
-                className="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] font-medium transition-colors"
-              >
-                {selectedTransactions.size === transactions.length ? 'Deselect All' : 'Select All'}
-              </button>
-            )}
-          </div>
-          {isSelectMode && selectedTransactions.size > 0 && (
-            <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors font-medium"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4" />
-              Export Selected ({selectedTransactions.size})
+    <div>
+      {/* Action bar */}
+      <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', background: 'var(--surface-2)', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button
+            style={{ fontSize: '13px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', padding: 0 }}
+            onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
+          >
+            {selectMode ? 'Cancel' : 'Select'}
+          </button>
+          {selectMode && (
+            <button style={{ fontSize: '13px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', padding: 0 }} onClick={toggleAll}>
+              {selected.size === transactions.length ? 'Deselect all' : 'Select all'}
             </button>
           )}
         </div>
+        {selectMode && selected.size > 0 && (
+          <button className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => onExport(transactions.filter((t) => selected.has(t.id)))}>
+            <DocumentArrowDownIcon style={{ width: '14px', height: '14px' }} />
+            Export ({selected.size})
+          </button>
+        )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-          <thead className="bg-[var(--color-surface)]">
+      {/* Table */}
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+          <thead>
             <tr>
-              {isSelectMode && (
-                <th scope="col" className="px-6 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedTransactions.size === transactions.length}
-                    onChange={handleSelectAll}
-                    className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-[var(--color-surface)]"
-                  />
+              {selectMode && <th style={{ ...thStyle(false), width: '40px', padding: '10px 8px 10px 16px' }}><input type="checkbox" checked={selected.size === transactions.length} onChange={toggleAll} style={{ accentColor: 'var(--accent)' }} /></th>}
+              {[
+                { label: 'Date', field: 'date' },
+                { label: 'Description', field: 'description' },
+                { label: 'Category', field: 'category' },
+                { label: 'Amount', field: 'amount' },
+              ].map(({ label, field }) => (
+                <th key={field} style={thStyle(true)} onClick={() => onSort(field)}>
+                  {label}<SortIcon field={field} />
                 </th>
-              )}
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                onClick={() => handleSort('date')}
-              >
-                Date <SortIcon field="date" />
-              </th>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                onClick={() => handleSort('description')}
-              >
-                Description <SortIcon field="description" />
-              </th>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                onClick={() => handleSort('category')}
-              >
-                Category <SortIcon field="category" />
-              </th>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                onClick={() => handleSort('amount')}
-              >
-                Amount <SortIcon field="amount" />
-              </th>
-              <th scope="col" className="relative px-6 py-3">
-                <span className="sr-only">Actions</span>
-              </th>
+              ))}
+              <th style={{ ...thStyle(false), textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-[var(--color-card)] divide-y divide-[var(--color-border)]">
-            {transactions.map((transaction) => (
-              <tr 
-                key={transaction.id} 
-                className={`hover:bg-[var(--color-bg)] transition-colors ${
-                  selectedTransactions.has(transaction.id) ? 'bg-[var(--color-primary)]/10' : ''
-                }`}
-              >
-                {isSelectMode && (
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedTransactions.has(transaction.id)}
-                      onChange={() => handleSelectTransaction(transaction.id)}
-                      className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-[var(--color-surface)]"
-                    />
+          <tbody>
+            {transactions.map((txn, i) => {
+              const isIncome = txn.transaction_type === 'income' || Number(txn.amount) > 0;
+              const color = CAT_COLORS[i % CAT_COLORS.length];
+              const bg = CAT_BG[i % CAT_BG.length];
+              const isSelected = selected.has(txn.id);
+              return (
+                <tr key={txn.id}
+                  style={{ borderBottom: '1px solid var(--border-subtle)', background: isSelected ? 'var(--accent-glow)' : 'transparent', transition: 'background 0.1s' }}
+                  onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = 'var(--surface-2)'; }}
+                  onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {selectMode && (
+                    <td style={{ padding: '11px 8px 11px 16px' }}>
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleOne(txn.id)} style={{ accentColor: 'var(--accent)' }} />
+                    </td>
+                  )}
+                  <td style={{ padding: '11px 14px', fontSize: '13px', color: 'var(--text-muted)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                    {fmtDate(txn.date)}
                   </td>
-                )}
-                <td className="px-6 py-4 whitespace-nowrap text-[var(--color-text)] font-medium">
-                  {formatDate(transaction.date)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-[var(--color-text)]">
-                  {transaction.description}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getCategoryBadge(transaction)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {formatAmount(transaction.amount, transaction.transaction_type)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => onEdit(transaction)}
-                      className="text-[var(--color-muted)] hover:text-[var(--color-primary)] transition-colors p-1 rounded"
-                      title="Edit transaction"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(transaction.id)}
-                      className="text-[var(--color-muted)] hover:text-red-500 transition-colors p-1 rounded"
-                      title="Delete transaction"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  <td style={{ padding: '11px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="cat-ic" style={{ background: bg, color, width: '32px', height: '32px', borderRadius: '9px', fontSize: '14px' }}>
+                        {txn.category?.icon || (isIncome ? '↑' : '↓')}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{txn.description}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '11px 14px' }}>
+                    <span className="badge" style={{ background: bg, color, fontSize: '11px' }}>
+                      {getCategoryName(txn)}
+                    </span>
+                  </td>
+                  <td style={{ padding: '11px 14px', whiteSpace: 'nowrap' }}>
+                    <span className={`badge badge-${isIncome ? 'up' : 'down'}`}>
+                      {isIncome ? '+' : '-'}PKR {fmtAmt(txn.amount)}
+                    </span>
+                  </td>
+                  <td style={{ padding: '11px 14px', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => onEdit(txn)} title="Edit">
+                        <PencilIcon style={{ width: '14px', height: '14px' }} />
+                      </button>
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => onDelete(txn.id)} title="Delete"
+                        style={{ color: 'var(--expense)' }}>
+                        <TrashIcon style={{ width: '14px', height: '14px' }} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-
-      {transactions.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-[var(--color-surface)] rounded-full flex items-center justify-center mx-auto mb-4">
-            <ArrowPathIcon className="h-8 w-8 text-[var(--color-muted)]" />
-          </div>
-          <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">No transactions found</h3>
-          <p className="text-[var(--color-muted)] mb-4">
-            Get started by adding your first transaction.
-          </p>
-          <button className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors font-medium">
-            Add Transaction
-          </button>
-        </div>
-      )}
     </div>
   );
 };
 
-export default TransactionList; 
+export default TransactionList;

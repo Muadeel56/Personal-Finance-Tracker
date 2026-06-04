@@ -1,5 +1,19 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+
+const VARIANT_MAP = {
+  primary:   'btn btn-primary',
+  secondary: 'btn btn-secondary',
+  ghost:     'btn btn-ghost',
+  outline:   'btn btn-secondary',
+  danger:    'btn btn-danger',
+  success:   'btn btn-primary',
+};
+
+const SIZE_MAP = {
+  sm: 'btn-sm',
+  md: '',
+  lg: 'btn-lg',
+};
 
 const Button = ({
   children,
@@ -12,30 +26,16 @@ const Button = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
-  
-  const variants = {
-    primary: 'bg-[var(--color-primary)] text-white hover:opacity-90 focus:ring-[var(--color-primary)]',
-    secondary: 'bg-[var(--color-secondary)] text-white hover:opacity-90 focus:ring-[var(--color-secondary)]',
-    danger: 'bg-[var(--color-danger)] text-white hover:opacity-90 focus:ring-[var(--color-danger)]',
-    success: 'bg-[var(--color-success)] text-white hover:opacity-90 focus:ring-[var(--color-success)]',
-    ghost: 'bg-transparent text-[var(--color-text)] hover:bg-[var(--color-bg)]',
-    outline: 'bg-transparent border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-bg)] focus:ring-[var(--color-primary)]',
-  };
-
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  };
-
-  const widthClass = fullWidth ? 'w-full' : '';
-  const disabledClass = disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+  const variantClass = VARIANT_MAP[variant] || VARIANT_MAP.primary;
+  const sizeClass    = SIZE_MAP[size] || '';
+  const widthStyle   = fullWidth ? { width: '100%' } : {};
+  const disabledStyle = disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {};
 
   return (
     <button
       type={type}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${disabledClass} ${className}`}
+      className={`${variantClass} ${sizeClass} ${className}`.trim()}
+      style={{ ...widthStyle, ...disabledStyle }}
       onClick={onClick}
       disabled={disabled}
       {...props}
@@ -56,4 +56,4 @@ Button.propTypes = {
   className: PropTypes.string,
 };
 
-export default Button; 
+export default Button;

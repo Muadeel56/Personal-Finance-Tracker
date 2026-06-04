@@ -1,25 +1,27 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 
-const Card = ({
-  children,
-  title,
-  subtitle,
-  footer,
-  className = '',
-  ...props
-}) => {
+const Card = ({ children, title, subtitle, footer, className = '', padding = '22px', ...props }) => {
   return (
-    <div className={`bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl shadow p-4 sm:p-6 transition-colors ${className}`} {...props}>
+    <div className={`card ${className}`} style={{ padding }} {...props}>
       {(title || subtitle) && (
-        <div className="px-2 sm:px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] rounded-t-xl">
-          {title && <h3 className="text-lg font-semibold text-[var(--color-text)]">{title}</h3>}
-          {subtitle && <p className="mt-1 text-sm text-[var(--color-muted)]">{subtitle}</p>}
+        <div style={{ marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px solid var(--border-subtle)' }}>
+          {title && (
+            <h3 style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', margin: 0 }}>
+              {title}
+            </h3>
+          )}
+          {subtitle && (
+            <p style={{ marginTop: '4px', fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+              {subtitle}
+            </p>
+          )}
         </div>
       )}
-      <div className="px-2 sm:px-6 py-4">{children}</div>
+      {children}
       {footer && (
-        <div className="px-2 sm:px-6 py-4 bg-[var(--color-card)] border-t border-[var(--color-border)] rounded-b-xl">{footer}</div>
+        <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)' }}>
+          {footer}
+        </div>
       )}
     </div>
   );
@@ -31,6 +33,7 @@ Card.propTypes = {
   subtitle: PropTypes.string,
   footer: PropTypes.node,
   className: PropTypes.string,
+  padding: PropTypes.string,
 };
 
-export default Card; 
+export default Card;
