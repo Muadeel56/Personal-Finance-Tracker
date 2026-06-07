@@ -1,29 +1,29 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PlusIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ArrowRightIcon, CheckCircleIcon, FlagIcon } from '@heroicons/react/24/outline';
 
 const FinancialGoals = ({ goals = [] }) => {
   const getProgressColor = (percentage) => {
-    if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 60) return 'bg-blue-500';
-    if (percentage >= 40) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (percentage >= 80) return 'bg-[var(--income)]';
+    if (percentage >= 60) return 'bg-[var(--accent)]';
+    if (percentage >= 40) return 'bg-[var(--warning)]';
+    return 'bg-[var(--expense)]';
   };
 
   const getProgressTextColor = (percentage) => {
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-blue-600';
-    if (percentage >= 40) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage >= 80) return 'text-[var(--income)]';
+    if (percentage >= 60) return 'text-[var(--accent)]';
+    if (percentage >= 40) return 'text-[var(--warning)]';
+    return 'text-[var(--expense)]';
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-[var(--surface-1)] rounded-xl shadow-[var(--card-shadow)] p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Financial Goals</h2>
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Financial Goals</h2>
         <Link 
           to="/goals"
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+          className="text-sm text-[var(--accent)] hover:text-[var(--info)] font-medium flex items-center gap-1"
         >
           View all
           <ArrowRightIcon className="w-3 h-3" />
@@ -32,14 +32,14 @@ const FinancialGoals = ({ goals = [] }) => {
 
       {goals.length === 0 ? (
         <div className="text-center py-8">
-          <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <PlusIcon className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 mx-auto bg-[var(--surface-2)] rounded-full flex items-center justify-center mb-4">
+            <PlusIcon className="w-8 h-8 text-[var(--text-muted)]" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No goals yet</h3>
-          <p className="text-gray-500 mb-4">Set your first financial goal to start tracking your progress</p>
+          <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">No goals yet</h3>
+          <p className="text-[var(--text-muted)] mb-4">Set your first financial goal to start tracking your progress</p>
           <Link
             to="/goals/new"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--surface-1)] px-4 py-2 rounded-lg hover:bg-[var(--accent-hover)] transition-colors"
           >
             <PlusIcon className="w-4 h-4" />
             Create Goal
@@ -52,13 +52,15 @@ const FinancialGoals = ({ goals = [] }) => {
             const remaining = goal.target - goal.current;
             
             return (
-              <div key={goal.id} className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+              <div key={goal.id} className="p-4 border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-subtle)] transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="text-2xl">{goal.icon}</div>
+                    <div className="w-10 h-10 rounded-lg bg-[var(--surface-2)] flex items-center justify-center">
+                      <FlagIcon className="w-5 h-5 text-[var(--text-secondary)]" />
+                    </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{goal.name}</h3>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-medium text-[var(--text-primary)]">{goal.name}</h3>
+                      <p className="text-sm text-[var(--text-muted)]">
                         ${goal.current.toLocaleString()} of ${goal.target.toLocaleString()}
                       </p>
                     </div>
@@ -69,7 +71,7 @@ const FinancialGoals = ({ goals = [] }) => {
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div className="w-full bg-[var(--surface-3)] rounded-full h-2 mb-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(percentage)}`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -77,12 +79,14 @@ const FinancialGoals = ({ goals = [] }) => {
                 </div>
                 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">
-                    {remaining > 0 ? `$${remaining.toLocaleString()} to go` : 'Goal reached! 🎉'}
+                  <span className="text-[var(--text-muted)] flex items-center gap-1">
+                    {remaining > 0 ? `$${remaining.toLocaleString()} to go` : (
+                      <>Goal reached! <CheckCircleIcon className="w-4 h-4 text-[var(--income)]" /></>
+                    )}
                   </span>
                   <Link 
                     to={`/goals/${goal.id}`}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-[var(--accent)] hover:text-[var(--info)] font-medium"
                   >
                     Details
                   </Link>
@@ -93,7 +97,7 @@ const FinancialGoals = ({ goals = [] }) => {
           
           <Link
             to="/goals/new"
-            className="flex items-center justify-center gap-2 w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+            className="flex items-center justify-center gap-2 w-full p-3 border-2 border-dashed border-[var(--border-subtle)] rounded-lg text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors"
           >
             <PlusIcon className="w-4 h-4" />
             Add New Goal

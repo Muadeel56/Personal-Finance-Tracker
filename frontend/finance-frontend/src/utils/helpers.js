@@ -1,4 +1,5 @@
 import { format, parseISO, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { getCssVar, getCategoryColorByIndex } from './chartTheme';
 
 // Format currency with 2 decimal places
 export const formatCurrency = (amount) => {
@@ -148,15 +149,15 @@ export const generateChartData = (transactions, type = 'line') => {
       {
         label: 'Income',
         data: incomeData,
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderColor: getCssVar('--income') || '#059669',
+        backgroundColor: getCssVar('--income-muted') || 'rgba(16, 185, 129, 0.1)',
         fill: type === 'line',
       },
       {
         label: 'Expenses',
         data: expenseData,
-        borderColor: '#EF4444',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderColor: getCssVar('--expense') || '#EF4444',
+        backgroundColor: getCssVar('--expense-muted') || 'rgba(239, 68, 68, 0.1)',
         fill: type === 'line',
       },
     ],
@@ -165,20 +166,10 @@ export const generateChartData = (transactions, type = 'line') => {
 
 // Get category color
 export const getCategoryColor = (category) => {
-  const colors = {
-    housing: '#FF6B6B',
-    food: '#4ECDC4',
-    transportation: '#45B7D1',
-    utilities: '#96CEB4',
-    entertainment: '#FFEEAD',
-    healthcare: '#D4A5A5',
-    education: '#9B59B6',
-    shopping: '#3498DB',
-    salary: '#2ECC71',
-    investment: '#F1C40F',
-    other: '#95A5A6',
-  };
-  return colors[category] || '#95A5A6';
+  const keys = ['housing', 'food', 'transportation', 'utilities', 'entertainment', 'healthcare', 'education', 'shopping', 'salary', 'investment', 'other'];
+  const index = keys.indexOf(category);
+  if (index >= 0) return getCategoryColorByIndex(index);
+  return getCssVar('--text-muted') || '#94A3B8';
 };
 
 // Group transactions by category

@@ -5,9 +5,13 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   // Get initial theme from localStorage or system preference
   const getInitialTheme = () => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      const stored = window.localStorage.getItem("theme");
-      if (stored) return stored;
+    if (typeof window !== "undefined" && window.document) {
+      const fromDom = window.document.documentElement.getAttribute("data-theme");
+      if (fromDom === "dark" || fromDom === "light") return fromDom;
+      if (window.localStorage) {
+        const stored = window.localStorage.getItem("theme");
+        if (stored === "dark" || stored === "light") return stored;
+      }
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         return "dark";
       }

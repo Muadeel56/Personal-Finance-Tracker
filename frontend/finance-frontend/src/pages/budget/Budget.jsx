@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import {
+  FlagIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { useBudgets } from '../../contexts/BudgetsContext';
 import { categoriesAPI } from '../../api/categories';
 import { parseDate } from '../../utils/formatters';
@@ -154,7 +160,7 @@ const Budget = () => {
 
       {budgets.length === 0 ? (
         <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '52px', marginBottom: '14px' }}>🎯</div>
+          <FlagIcon className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No budgets yet</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
             Create your first budget to start tracking your spending
@@ -183,12 +189,12 @@ const Budget = () => {
                       onClick={() => { setEditingBudget(budget); setIsModalOpen(true); }}
                       className="btn btn-ghost btn-icon btn-sm"
                       title="Edit"
-                    >✏️</button>
+                    > <PencilIcon className="h-4 w-4" /></button>
                     <button
                       onClick={() => handleDelete(budget.id)}
                       className="btn btn-ghost btn-icon btn-sm"
                       title="Delete"
-                    >🗑️</button>
+                    > <TrashIcon className="h-4 w-4" /></button>
                   </div>
                 </div>
 
@@ -325,7 +331,7 @@ const Budget = () => {
                     <div className="field" style={{ height: '40px' }}>
                       <input type="number" step="0.01" placeholder="Amount" value={alloc.amount} onChange={(e) => setFormData((p) => ({ ...p, category_allocations: p.category_allocations.map((a, j) => j === i ? { ...a, amount: e.target.value } : a) }))} required />
                     </div>
-                    <button type="button" onClick={() => setFormData((p) => ({ ...p, category_allocations: p.category_allocations.filter((_, j) => j !== i) }))} style={{ background: 'none', border: 'none', color: 'var(--expense)', cursor: 'pointer', fontSize: '16px', padding: '4px' }}>✕</button>
+                    <button type="button" onClick={() => setFormData((p) => ({ ...p, category_allocations: p.category_allocations.filter((_, j) => j !== i) }))} style={{ background: 'none', border: 'none', color: 'var(--expense)', cursor: 'pointer', padding: '4px', display: 'flex' }} aria-label="Remove row"><XMarkIcon className="h-4 w-4" /></button>
                   </div>
                 ))}
                 {formData.total_amount && formData.category_allocations.length > 0 && (

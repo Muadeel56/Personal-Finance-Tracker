@@ -36,19 +36,19 @@ const FilterBar = ({
   }, []);
 
   return (
-    <div className="bg-[var(--color-card)] rounded-xl p-4 shadow-sm border border-[var(--color-border)] mb-6">
+    <div className="bg-[var(--surface-1)] rounded-xl p-4 shadow-[var(--card-shadow)] border border-[var(--border-subtle)] mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Search */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5 text-[var(--color-muted)]" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-[var(--text-secondary)]" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search transactions..."
-            className="block w-full pl-10 pr-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+            className="block w-full pl-10 pr-3 py-2 border border-[var(--border-subtle)] rounded-lg bg-[var(--surface-2)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           />
         </div>
 
@@ -58,13 +58,13 @@ const FilterBar = ({
             type="date"
             value={dateRange.start}
             onChange={(e) => onDateRangeChange({ ...dateRange, start: e.target.value })}
-            className="block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+            className="block w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg bg-[var(--surface-2)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           />
           <input
             type="date"
             value={dateRange.end}
             onChange={(e) => onDateRangeChange({ ...dateRange, end: e.target.value })}
-            className="block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+            className="block w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg bg-[var(--surface-2)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           />
         </div>
 
@@ -72,7 +72,7 @@ const FilterBar = ({
         <select
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+          className="block w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg bg-[var(--surface-2)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           disabled={loadingCategories}
         >
           <option value="">{loadingCategories ? 'Loading categories...' : 'All Categories'}</option>
@@ -88,7 +88,7 @@ const FilterBar = ({
           <select
             value={type}
             onChange={(e) => onTypeChange(e.target.value)}
-            className="block w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+            className="block w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg bg-[var(--surface-2)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           >
             <option value="">All Types</option>
             <option value="INCOME">Income</option>
@@ -96,7 +96,7 @@ const FilterBar = ({
           </select>
           <button
             onClick={onReset}
-            className="px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-bg)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+            className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg bg-[var(--surface-2)] text-[var(--text-primary)] hover:bg-[var(--bg-base)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           >
             <FunnelIcon className="h-5 w-5" />
           </button>

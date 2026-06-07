@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Bars3Icon, XMarkIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../common/Button/Button';
@@ -30,12 +31,12 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-[var(--color-surface)] shadow-sm border-b border-[var(--color-border)] transition-colors">
+    <header className="bg-[var(--surface-2)] shadow-[var(--card-shadow)] border-b border-[var(--border-subtle)] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo and Desktop Navigation */}
           <div className="flex items-center gap-6">
-            <Link to="/" className="text-2xl font-bold text-[var(--color-primary)] tracking-tight">Finance Tracker</Link>
+            <Link to="/" className="text-2xl font-bold text-[var(--accent)] tracking-tight">Finance Tracker</Link>
             <nav className="hidden md:flex gap-4">
               {navigation.map((item) => (
                 <Link
@@ -43,8 +44,8 @@ const Header = () => {
                   to={item.path}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                     isActive(item.path)
-                      ? 'bg-[var(--color-primary)] text-white shadow'
-                      : 'text-[var(--color-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-primary)]'
+                      ? 'bg-[var(--accent)] text-[var(--surface-1)] shadow'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-base)] hover:text-[var(--accent)]'
                   }`}
                 >
                   {item.name}
@@ -61,7 +62,7 @@ const Header = () => {
               className="mr-2"
               aria-label="Toggle theme"
             >
-              {isDarkMode ? '🌞' : '🌙'}
+              {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
             </Button>
             {/* User Menu */}
             {isAuthenticated ? (
@@ -72,11 +73,11 @@ const Header = () => {
                   className="flex items-center px-2 py-1"
                 >
                   <span className="sr-only">Open user menu</span>
-                  <div className="h-8 w-8 rounded-full bg-[var(--color-muted)] flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-full bg-[var(--text-secondary)] flex items-center justify-center">
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
                     ) : (
-                      <span className="text-base font-semibold text-[var(--color-surface)]">
+                      <span className="text-base font-semibold text-[var(--surface-2)]">
                         {user?.name?.charAt(0) || "U"}
                       </span>
                     )}
@@ -84,14 +85,14 @@ const Header = () => {
                 </Button>
                 {/* User Dropdown */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-[var(--color-card)] border border-[var(--color-border)] z-50 animate-fade-in">
+                  <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] z-50 animate-fade-in">
                     <div className="py-2">
                       {userMenuItems.map((item) => (
                         item.onClick ? (
                           <button
                             key={item.name}
                             onClick={item.onClick}
-                            className="block w-full text-left px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-bg)] rounded transition-colors"
+                            className="block w-full text-left px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded transition-colors"
                           >
                             {item.name}
                           </button>
@@ -99,7 +100,7 @@ const Header = () => {
                           <Link
                             key={item.name}
                             to={item.path}
-                            className="block px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-bg)] rounded transition-colors"
+                            className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded transition-colors"
                           >
                             {item.name}
                           </Link>
@@ -124,15 +125,14 @@ const Header = () => {
               <Button
                 variant="ghost"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg)] transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-md text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--bg-base)] transition-colors"
               >
                 <span className="sr-only">Open main menu</span>
-                <svg className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <svg className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                {isMobileMenuOpen ? (
+                  <XMarkIcon className="h-6 w-6" />
+                ) : (
+                  <Bars3Icon className="h-6 w-6" />
+                )}
               </Button>
             </div>
           </div>
@@ -142,16 +142,14 @@ const Header = () => {
       {isMobileMenuOpen && (
         <>
           {/* Overlay */}
-          <div className="fixed inset-0 z-40 bg-black bg-opacity-40 transition-opacity duration-300 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-[var(--bg-base)]/40 transition-opacity duration-300 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
           {/* Drawer */}
-          <nav className={`fixed top-0 left-0 z-50 h-full w-4/5 max-w-xs bg-[var(--color-surface)] border-r border-[var(--color-border)] shadow-2xl transform transition-transform duration-300 md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ willChange: 'transform' }}>
-            <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--color-border)]">
-              <span className="text-xl font-bold text-[var(--color-primary)]">Finance Tracker</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-full hover:bg-[var(--color-bg)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+          <nav className={`fixed top-0 left-0 z-50 h-full w-4/5 max-w-xs bg-[var(--surface-2)] border-r border-[var(--border-subtle)] shadow-2xl transform transition-transform duration-300 md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ willChange: 'transform' }}>
+            <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--border-subtle)]">
+              <span className="text-xl font-bold text-[var(--accent)]">Finance Tracker</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-full hover:bg-[var(--bg-base)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
                 <span className="sr-only">Close menu</span>
-                <svg className="h-6 w-6 text-[var(--color-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <XMarkIcon className="h-6 w-6 text-[var(--text-primary)]" />
               </button>
             </div>
             <div className="flex flex-col gap-1 p-4">
@@ -162,8 +160,8 @@ const Header = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
                     isActive(item.path)
-                      ? 'bg-[var(--color-primary)] text-white shadow'
-                      : 'text-[var(--color-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-primary)]'
+                      ? 'bg-[var(--accent)] text-[var(--surface-1)] shadow'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-base)] hover:text-[var(--accent)]'
                   }`}
                 >
                   {item.name}

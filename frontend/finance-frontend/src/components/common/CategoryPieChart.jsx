@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -7,22 +7,14 @@ import {
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { getCategoryColor } from '../../utils/helpers';
+import { useChartTheme } from '../../hooks/useChartTheme';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const CategoryPieChart = ({ data }) => {
-  const chartData = {
-    labels: Object.keys(data),
-    datasets: [
-      {
-        data: Object.values(data).map(category => category.total),
-        backgroundColor: Object.keys(data).map(category => getCategoryColor(category)),
-        borderWidth: 1,
-      },
-    ],
-  };
+  const chartTheme = useChartTheme();
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -30,14 +22,14 @@ const CategoryPieChart = ({ data }) => {
         position: 'right',
         labels: {
           padding: 20,
-          font: {
-            size: 12,
-          },
+          color: chartTheme.colors.text,
+          font: { size: 12, family: 'var(--font-body)' },
         },
       },
       tooltip: {
+        ...chartTheme.plugins.tooltip,
         callbacks: {
-          label: function(context) {
+          label(context) {
             const label = context.label || '';
             const value = context.parsed || 0;
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -50,6 +42,18 @@ const CategoryPieChart = ({ data }) => {
         },
       },
     },
+  }), [chartTheme]);
+
+  const chartData = {
+    labels: Object.keys(data),
+    datasets: [
+      {
+        data: Object.values(data).map((category) => category.total),
+        backgroundColor: Object.keys(data).map((category) => getCategoryColor(category)),
+        borderColor: chartTheme.colors.border,
+        borderWidth: 1,
+      },
+    ],
   };
 
   return (
@@ -59,4 +63,4 @@ const CategoryPieChart = ({ data }) => {
   );
 };
 
-export default CategoryPieChart; 
+export default CategoryPieChart;

@@ -128,64 +128,64 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div>
-        <label htmlFor="transaction_type" className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="transaction_type" className="block text-sm font-medium text-[var(--text-primary)]">
           Type
         </label>
         <select
           {...register('transaction_type')}
-          className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         >
           <option value="EXPENSE">Expense</option>
           <option value="INCOME">Income</option>
         </select>
         {errors.transaction_type && (
-          <p className="mt-1 text-sm text-red-500">{errors.transaction_type.message}</p>
+          <p className="mt-1 text-sm text-[var(--expense)]">{errors.transaction_type.message}</p>
         )}
       </div>
 
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="amount" className="block text-sm font-medium text-[var(--text-primary)]">
           Amount
         </label>
-        <div className="mt-1 relative rounded-md shadow-sm">
+        <div className="mt-1 relative rounded-md shadow-[var(--card-shadow)]">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="text-[var(--color-muted)] sm:text-sm">$</span>
+            <span className="text-[var(--text-secondary)] sm:text-sm">$</span>
           </div>
           <input
             type="number"
             step="0.01"
             {...register('amount')}
-            className="block w-full pl-7 rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+            className="block w-full pl-7 rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
             placeholder="0.00"
           />
         </div>
         {errors.amount && (
-          <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
+          <p className="mt-1 text-sm text-[var(--expense)]">{errors.amount.message}</p>
         )}
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)]">
           Description
         </label>
         <input
           type="text"
           {...register('description')}
-          className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
           placeholder="Enter transaction description"
         />
         {errors.description && (
-          <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+          <p className="mt-1 text-sm text-[var(--expense)]">{errors.description.message}</p>
         )}
       </div>
 
       <div>
-        <label htmlFor="category" className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="category" className="block text-sm font-medium text-[var(--text-primary)]">
           Category
         </label>
         <select
           {...register('category', { required: true })}
-          className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
           disabled={loadingCategories}
         >
           <option value="">Select a category</option>
@@ -196,26 +196,26 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
           ))}
         </select>
         {errors.category && (
-          <p className="mt-1 text-sm text-red-500">{errors.category.message}</p>
+          <p className="mt-1 text-sm text-[var(--expense)]">{errors.category.message}</p>
         )}
       </div>
 
       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="date" className="block text-sm font-medium text-[var(--text-primary)]">
           Date
         </label>
         <input
           type="text"
           {...register('date')}
-          className="mt-1 block w-full rounded-md border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
           placeholder="DD-MM-YYYY (e.g., 08-09-2025)"
           autoComplete="off"
         />
-        <p className="mt-1 text-xs text-[var(--color-muted)]">
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">
           Format: DD-MM-YYYY (e.g., 08-09-2025 for August 9th, 2025)
         </p>
         {errors.date && (
-          <p className="mt-1 text-sm text-red-500">{errors.date.message}</p>
+          <p className="mt-1 text-sm text-[var(--expense)]">{errors.date.message}</p>
         )}
       </div>
 

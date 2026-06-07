@@ -61,7 +61,7 @@ const Dashboard = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500 text-center">
+        <div className="text-[var(--expense)] text-center">
           <h2 className="text-xl font-semibold mb-2">Error Loading Dashboard</h2>
           <p>{error}</p>
         </div>
@@ -73,14 +73,14 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* Time Range Selector */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
         <div className="flex space-x-2">
           <button
             onClick={() => setTimeRange('current')}
             className={`px-4 py-2 rounded-lg ${
               timeRange === 'current'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-primary text-[var(--surface-1)]'
+                : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)]'
             }`}
           >
             Current Month
@@ -89,8 +89,8 @@ const Dashboard = () => {
             onClick={() => setTimeRange('previous')}
             className={`px-4 py-2 rounded-lg ${
               timeRange === 'previous'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-primary text-[var(--surface-1)]'
+                : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)]'
             }`}
           >
             Previous Month
@@ -128,19 +128,19 @@ const Dashboard = () => {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Income vs Expenses</h2>
+        <div className="bg-[var(--surface-1)] rounded-xl shadow-[var(--card-shadow)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Income vs Expenses</h2>
           <LineChart data={chartData} />
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Expenses by Category</h2>
+        <div className="bg-[var(--surface-1)] rounded-xl shadow-[var(--card-shadow)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Expenses by Category</h2>
           <CategoryPieChart data={categoryData} />
         </div>
       </div>
 
       {/* Budget Progress */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Budget Overview</h2>
+      <div className="bg-[var(--surface-1)] rounded-xl shadow-[var(--card-shadow)] p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Budget Overview</h2>
         <div className="space-y-4">
           {budgetOverview.map((budget) => (
             <BudgetProgress

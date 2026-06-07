@@ -33,31 +33,31 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
       {/* Active Filters */}
       {hasActiveFilters() && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-gray-700">Active filters:</span>
+          <span className="text-sm font-medium text-[var(--text-primary)]">Active filters:</span>
           {filters.search && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--info-muted)] text-[var(--info)] rounded-full text-sm">
               Search: "{filters.search}"
               <button
                 onClick={() => setFilters({ ...filters, search: '' })}
-                className="ml-1 hover:text-blue-600"
+                className="ml-1 hover:text-[var(--accent)]"
               >
                 <XMarkIcon className="w-3 h-3" />
               </button>
             </span>
           )}
           {filters.type !== 'all' && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--income-muted)] text-[var(--income)] rounded-full text-sm">
               Type: {filters.type}
               <button
                 onClick={() => setFilters({ ...filters, type: 'all' })}
-                className="ml-1 hover:text-green-600"
+                className="ml-1 hover:text-[var(--income)]"
               >
                 <XMarkIcon className="w-3 h-3" />
               </button>
             </span>
           )}
           {filters.category !== 'all' && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--info-muted)] text-[var(--info)] rounded-full text-sm">
               Category: {filters.category}
               <button
                 onClick={() => setFilters({ ...filters, category: 'all' })}
@@ -68,22 +68,22 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
             </span>
           )}
           {filters.dateRange !== 'all' && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--warning-muted)] text-orange-800 rounded-full text-sm">
               Date: {filters.dateRange}
               <button
                 onClick={() => setFilters({ ...filters, dateRange: 'all' })}
-                className="ml-1 hover:text-orange-600"
+                className="ml-1 hover:text-[var(--warning)]"
               >
                 <XMarkIcon className="w-3 h-3" />
               </button>
             </span>
           )}
           {filters.amountRange !== 'all' && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--expense-muted)] text-[var(--expense)] rounded-full text-sm">
               Amount: {filters.amountRange}
               <button
                 onClick={() => setFilters({ ...filters, amountRange: 'all' })}
-                className="ml-1 hover:text-red-600"
+                className="ml-1 hover:text-[var(--expense)]"
               >
                 <XMarkIcon className="w-3 h-3" />
               </button>
@@ -91,7 +91,7 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
           )}
           <button
             onClick={clearFilters}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
+            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] underline"
           >
             Clear all
           </button>
@@ -102,13 +102,13 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Transaction Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             Transaction Type
           </label>
           <select
             value={filters.type}
             onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           >
             <option value="all">All Types</option>
             {transactionTypes.map(type => (
@@ -123,13 +123,13 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             Category
           </label>
           <select
             value={filters.category}
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           >
             <option value="all">All Categories</option>
             {categories.map(category => (
@@ -142,13 +142,13 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
 
         {/* Date Range */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             Date Range
           </label>
           <select
             value={filters.dateRange}
             onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           >
             <option value="all">All Time</option>
             <option value="today">Today</option>
@@ -161,13 +161,13 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
 
         {/* Amount Range */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             Amount Range
           </label>
           <select
             value={filters.amountRange}
             onChange={(e) => setFilters({ ...filters, amountRange: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           >
             <option value="all">All Amounts</option>
             <option value="0-100">$0 - $100</option>
@@ -182,22 +182,22 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
       {/* Custom Date Range (if needed) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             From Date
           </label>
           <input
             type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
             placeholder="Start date"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             To Date
           </label>
           <input
             type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
             placeholder="End date"
           />
         </div>
@@ -207,25 +207,25 @@ const TransactionFilters = ({ filters, setFilters, transactions }) => {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setFilters({ ...filters, type: 'INCOME' })}
-          className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition-colors"
+          className="px-3 py-1 bg-[var(--income-muted)] text-[var(--income)] rounded-full text-sm hover:bg-[var(--surface-3)] transition-colors"
         >
           Income Only
         </button>
         <button
           onClick={() => setFilters({ ...filters, type: 'EXPENSE' })}
-          className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm hover:bg-red-200 transition-colors"
+          className="px-3 py-1 bg-[var(--expense-muted)] text-[var(--expense)] rounded-full text-sm hover:opacity-90 transition-colors"
         >
           Expenses Only
         </button>
         <button
           onClick={() => setFilters({ ...filters, dateRange: 'month' })}
-          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors"
+          className="px-3 py-1 bg-[var(--info-muted)] text-[var(--info)] rounded-full text-sm hover:bg-[var(--surface-3)] transition-colors"
         >
           This Month
         </button>
         <button
           onClick={() => setFilters({ ...filters, amountRange: '1000-' })}
-          className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm hover:bg-purple-200 transition-colors"
+          className="px-3 py-1 bg-[var(--info-muted)] text-[var(--info)] rounded-full text-sm hover:opacity-80 transition-colors"
         >
           Large Transactions
         </button>
