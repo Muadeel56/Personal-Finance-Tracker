@@ -3,8 +3,8 @@ import { useTransactions } from '../../contexts/TransactionContext';
 import TransactionList from '../../components/common/Transactions/TransactionList';
 import FilterBar from '../../components/common/Filter/FilterBar';
 import TransactionForm from '../../components/common/Forms/TransactionForm';
-import { Dialog } from '@headlessui/react';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
+import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import {
   filterByDateRange,
   sortTransactions,
@@ -22,6 +22,8 @@ const Transactions = () => {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [filters, setFilters] = useState({
     searchQuery: '',
     dateRange: getCurrentMonthRange(),
@@ -30,18 +32,27 @@ const Transactions = () => {
   });
   const [sort, setSort] = useState({ field: 'date', direction: 'desc' });
 
+  const closeForm = () => { setIsFormOpen(false); setSelectedTransaction(null); };
+
   const handleEdit = (transaction) => { setSelectedTransaction(transaction); setIsFormOpen(true); };
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
-      await deleteTransaction(id);
-    }
+
+  const handleDelete = (id) => {
+    setDeletingId(id);
+    setShowDeleteConfirm(true);
   };
+
+  const handleConfirmDelete = async () => {
+    if (deletingId) await deleteTransaction(deletingId);
+    setShowDeleteConfirm(false);
+    setDeletingId(null);
+  };
+
   const handleSubmit = async (data) => {
     if (selectedTransaction) await updateTransaction(selectedTransaction.id, data);
     else await addTransaction(data);
-    setIsFormOpen(false);
-    setSelectedTransaction(null);
+    closeForm();
   };
+
   const handleExport = (selectedData) => {
     const csvContent = [
       ['Date', 'Description', 'Category', 'Type', 'Amount'],
@@ -73,7 +84,7 @@ const Transactions = () => {
   const sortedTransactions = sortTransactions(filteredTransactions, sort.field, sort.direction);
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="page-container">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
@@ -123,35 +134,52 @@ const Transactions = () => {
       </div>
 
       {/* Add / Edit modal */}
-      <Dialog
-        open={isFormOpen}
-        onClose={() => { setIsFormOpen(false); setSelectedTransaction(null); }}
-        style={{ position: 'relative', zIndex: 50 }}
-      >
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} aria-hidden="true" />
-        <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-          <Dialog.Panel style={{
-            width: '100%', maxWidth: '520px',
-            background: 'var(--surface-1)',
-            border: 'var(--card-border)',
-            borderRadius: '20px',
-            padding: '28px',
-            boxShadow: 'var(--card-shadow)',
-          }}>
-            <Dialog.Title style={{
-              fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700,
-              color: 'var(--text-primary)', marginBottom: '20px', letterSpacing: '-0.01em',
-            }}>
-              {selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}
-            </Dialog.Title>
+      {isFormOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            onClick={closeForm}
+          />
+          <div
+            style={{
+              position: 'relative', zIndex: 1,
+              width: '100%', maxWidth: '540px',
+              background: 'var(--surface-1)',
+              border: 'var(--card-border)',
+              borderRadius: '16px',
+              padding: '28px',
+              boxShadow: 'var(--card-shadow)',
+              maxHeight: '90vh',
+              overflow: 'visible',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px' }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                {selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}
+              </h3>
+              <button onClick={closeForm} className="btn btn-ghost btn-icon btn-sm">
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
             <TransactionForm
               onSubmit={handleSubmit}
               initialData={selectedTransaction}
-              onCancel={() => { setIsFormOpen(false); setSelectedTransaction(null); }}
+              onCancel={closeForm}
             />
-          </Dialog.Panel>
+          </div>
         </div>
-      </Dialog>
+      )}
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => { setShowDeleteConfirm(false); setDeletingId(null); }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+      />
     </div>
   );
 };

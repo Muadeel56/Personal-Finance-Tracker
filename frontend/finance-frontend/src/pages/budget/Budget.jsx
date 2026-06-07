@@ -9,6 +9,7 @@ import {
 import { useBudgets } from '../../contexts/BudgetsContext';
 import { categoriesAPI } from '../../api/categories';
 import { parseDate } from '../../utils/formatters';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const fmt = (n) => new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n ?? 0);
 
@@ -28,6 +29,8 @@ const Budget = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingBudgetId, setDeletingBudgetId] = useState(null);
   const [budgetAnalysis, setBudgetAnalysis] = useState({});
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -104,10 +107,17 @@ const Budget = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Delete this budget?')) {
-      try { await deleteBudget(id); } catch (err) { console.error(err); }
+  const handleDelete = (id) => {
+    setDeletingBudgetId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingBudgetId) {
+      try { await deleteBudget(deletingBudgetId); } catch (err) { console.error(err); }
     }
+    setShowDeleteConfirm(false);
+    setDeletingBudgetId(null);
   };
 
   const getBudgetProgress = (budget) => {
@@ -146,7 +156,7 @@ const Budget = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="page-container">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
@@ -269,7 +279,9 @@ const Budget = () => {
             padding: '28px',
             boxShadow: 'var(--card-shadow)',
             maxHeight: '90vh',
-            overflowY: 'auto',
+            overflow: 'visible',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '22px' }}>
               {editingBudget ? 'Edit Budget' : 'Create Budget'}
@@ -364,6 +376,14 @@ const Budget = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => { setShowDeleteConfirm(false); setDeletingBudgetId(null); }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Budget"
+        message="Are you sure you want to delete this budget? This action cannot be undone."
+      />
     </div>
   );
 };

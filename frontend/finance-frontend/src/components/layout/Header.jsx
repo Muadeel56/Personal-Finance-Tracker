@@ -74,11 +74,11 @@ const Header = () => {
                 >
                   <span className="sr-only">Open user menu</span>
                   <div className="h-8 w-8 rounded-full bg-[var(--text-secondary)] flex items-center justify-center">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+                    {user?.profile_picture ? (
+                      <img src={user.profile_picture} alt={[user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username} className="h-8 w-8 rounded-full object-cover" />
                     ) : (
                       <span className="text-base font-semibold text-[var(--surface-2)]">
-                        {user?.name?.charAt(0) || "U"}
+                        {(user?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
                       </span>
                     )}
                   </div>

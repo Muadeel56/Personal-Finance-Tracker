@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { PlusIcon, PencilIcon, TrashIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, TagIcon } from '@heroicons/react/24/outline';
 import CategoryModal from '../../components/categories/CategoryModal';
-import DeleteConfirmModal from '../../components/common/DeleteConfirmModal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { categoriesAPI } from '../../api/categories';
 import CategoryIcon from '../../components/categories/CategoryIcon';
 
@@ -70,7 +70,7 @@ const Categories = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="page-container">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
@@ -159,7 +159,7 @@ const Categories = () => {
         <CategoryModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={handleSaveCategory} category={editingCategory} />
       )}
       {showDeleteModal && deletingCategory && (
-        <DeleteConfirmModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleConfirmDelete}
+        <ConfirmDialog isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleConfirmDelete}
           title="Delete Category" message={`Delete "${deletingCategory.name}"? This cannot be undone.`} />
       )}
     </div>

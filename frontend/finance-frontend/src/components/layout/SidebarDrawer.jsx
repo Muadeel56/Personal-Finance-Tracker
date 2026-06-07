@@ -14,11 +14,8 @@ const SidebarDrawer = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  const initials = user?.name
-    ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-    : (user?.username?.[0] || 'U').toUpperCase();
-
-  const displayName = user?.name || user?.username || 'User';
+  const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || 'User';
+  const initials = displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'U';
 
   return (
     <>

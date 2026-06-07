@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
 from .models import User, UserSettings
-from .serializers import UserSerializer, UserSettingsSerializer
+from .serializers import UserSerializer, UserSettingsSerializer, UserProfileUpdateSerializer
 
 User = get_user_model()
 
@@ -30,10 +30,24 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get', 'patch', 'put'], permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user, context={'request': request})
+            return Response(serializer.data)
+
+        serializer = UserProfileUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=(request.method == 'PATCH'),
+            context={'request': request},
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                UserSerializer(request.user, context={'request': request}).data
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserSettingsViewSet(viewsets.ModelViewSet):
     serializer_class = UserSettingsSerializer

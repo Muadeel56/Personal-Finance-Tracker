@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     } finally {
       setLoading(false);
     }
@@ -67,12 +68,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (data) => {
+    try {
+      const updatedUser = await authAPI.updateProfile(data);
+      setUser(updatedUser);
+      toast.success('Profile updated successfully');
+      return updatedUser;
+    } catch (error) {
+      const message = error.response?.data?.email?.[0]
+        || error.response?.data?.detail
+        || Object.values(error.response?.data || {}).flat()[0]
+        || 'Failed to update profile';
+      toast.error(message);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
+    updateProfile,
     isAuthenticated: !!user,
   };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
@@ -7,6 +7,12 @@ import {
   CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../contexts/TransactionContext';
+import {
+  calculateTotalIncome,
+  calculateTotalExpenses,
+  filterTransactionsByTimeRange,
+  isIncomeTransaction,
+} from '../../utils/helpers';
 
 const fmt = (n) => `PKR ${Number(n).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
@@ -15,27 +21,35 @@ const Reports = () => {
   const [timeRange, setTimeRange] = useState('current_month');
   const [reportType, setReportType] = useState('overview');
 
-  const income   = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + Number(t.amount), 0);
-  const expenses = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
+  const filteredTransactions = useMemo(
+    () => filterTransactionsByTimeRange(transactions, timeRange),
+    [transactions, timeRange]
+  );
+
+  const income = useMemo(() => calculateTotalIncome(filteredTransactions), [filteredTransactions]);
+  const expenses = useMemo(() => calculateTotalExpenses(filteredTransactions), [filteredTransactions]);
   const netIncome = income - expenses;
 
-  const categoryData = transactions.reduce((acc, t) => {
+  const categoryData = useMemo(() => filteredTransactions.reduce((acc, t) => {
     const cat = t.category?.name || 'Uncategorized';
     const amt = Math.abs(Number(t.amount));
     if (!acc[cat]) acc[cat] = { income: 0, expenses: 0, count: 0 };
-    if (t.amount > 0) acc[cat].income += amt; else acc[cat].expenses += amt;
+    if (isIncomeTransaction(t)) acc[cat].income += amt;
+    else acc[cat].expenses += amt;
     acc[cat].count += 1;
     return acc;
-  }, {});
+  }, {}), [filteredTransactions]);
 
-  const monthlyData = transactions.reduce((acc, t) => {
+  const monthlyData = useMemo(() => filteredTransactions.reduce((acc, t) => {
     const d = new Date(t.date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     if (!acc[key]) acc[key] = { income: 0, expenses: 0, count: 0 };
-    if (t.amount > 0) acc[key].income += Number(t.amount); else acc[key].expenses += Math.abs(Number(t.amount));
+    const amt = Math.abs(Number(t.amount));
+    if (isIncomeTransaction(t)) acc[key].income += amt;
+    else acc[key].expenses += amt;
     acc[key].count += 1;
     return acc;
-  }, {});
+  }, {}), [filteredTransactions]);
 
   const sortedMonths = Object.keys(monthlyData).sort().slice(-6);
 
@@ -56,14 +70,14 @@ const Reports = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="page-container">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
           <h1>Reports</h1>
           <p>Analyze your financial data and track progress</p>
         </div>
-        <div className="field" style={{ width: 'auto', height: '40px' }}>
+        <div className="field field--select" style={{ width: 'auto' }}>
           <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)} style={{ minWidth: '160px' }}>
             <option value="current_month">Current Month</option>
             <option value="previous_month">Previous Month</option>
@@ -82,7 +96,7 @@ const Reports = () => {
         ))}
       </div>
 
-      {transactions.length === 0 ? (
+      {filteredTransactions.length === 0 ? (
         <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
           <ChartBarIcon className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No data yet</h3>
@@ -113,7 +127,7 @@ const Reports = () => {
 
               <div className="card" style={{ padding: '22px' }}>
                 <div className="section-title" style={{ marginBottom: '18px' }}>Transaction Summary</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div className="reports-category-grid">
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--income)', marginBottom: '12px', fontFamily: 'var(--font-display)' }}>Income by Category</div>
                     {Object.entries(categoryData).filter(([, d]) => d.income > 0).sort(([, a], [, b]) => b.income - a.income).slice(0, 5).map(([cat, d]) => (
