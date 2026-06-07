@@ -11,6 +11,29 @@ export const formatCurrency = (amount) => {
   }).format(numAmount);
 };
 
+export const formatDateForInput = (date = new Date()) => {
+  const d = date instanceof Date ? date : new Date(date);
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+export const formatDateForDisplay = (dateString) => {
+  if (!dateString) return formatDateForInput();
+  if (/^\d{2}-\d{2}-\d{4}$/.test(dateString)) return dateString;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split('-');
+    return `${day}-${month}-${year}`;
+  }
+  const parsed = parseDate(dateString);
+  if (parsed) {
+    const [year, month, day] = parsed.split('-');
+    return `${day}-${month}-${year}`;
+  }
+  return formatDateForInput();
+};
+
 // Helper function to ensure consistent date parsing
 export const parseDate = (dateString) => {
   if (!dateString) return null;

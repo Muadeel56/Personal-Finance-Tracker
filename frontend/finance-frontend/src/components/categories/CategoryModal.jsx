@@ -130,7 +130,9 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
           padding: '28px',
           boxShadow: 'var(--card-shadow)',
           maxHeight: '90vh',
-          overflowY: 'auto',
+          overflow: 'visible',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onClick={(e) => e.stopPropagation()}
       >

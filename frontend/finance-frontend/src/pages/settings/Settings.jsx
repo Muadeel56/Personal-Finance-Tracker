@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const SettingRow = ({ title, description, children }) => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -27,11 +28,12 @@ const Settings = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState({ email: true, push: false, weekly: true, monthly: true });
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
 
   const toggle = (key) => setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+    <div className="page-container">
       <div className="page-header">
         <h1>Settings</h1>
         <p>Customize your experience and manage preferences</p>
@@ -85,7 +87,7 @@ const Settings = () => {
             <button className="btn btn-secondary btn-sm">Change</button>
           </SettingRow>
           <SettingRow title="Sign out" description="Sign out of your account on this device">
-            <button className="btn btn-ghost btn-sm" onClick={() => { if (window.confirm('Sign out?')) logout(); }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowSignOutConfirm(true)}>
               Sign out
             </button>
           </SettingRow>
@@ -106,6 +108,16 @@ const Settings = () => {
           ))}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showSignOutConfirm}
+        onClose={() => setShowSignOutConfirm(false)}
+        onConfirm={() => { setShowSignOutConfirm(false); logout(); }}
+        title="Sign out"
+        message="Are you sure you want to sign out of your account on this device?"
+        confirmLabel="Sign out"
+        variant="default"
+      />
     </div>
   );
 };

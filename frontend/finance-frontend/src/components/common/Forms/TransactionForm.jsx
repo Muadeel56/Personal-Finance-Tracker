@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Button from '../Button/Button';
+import { toast } from 'react-hot-toast';
 import api from '../../../api/config';
-import { parseDate } from '../../../utils/formatters';
+import { parseDate, formatDateForInput, formatDateForDisplay } from '../../../utils/formatters';
 
 const schema = yup.object().shape({
   amount: yup
@@ -35,7 +35,7 @@ const schema = yup.object().shape({
       const [day, month, year] = value.split('-').map(Number);
       const inputDate = new Date(year, month - 1, day);
       const today = new Date();
-      today.setHours(23, 59, 59, 999); // End of today
+      today.setHours(23, 59, 59, 999);
       return inputDate <= today;
     }),
   transaction_type: yup
@@ -43,6 +43,8 @@ const schema = yup.object().shape({
     .required('Transaction type is required')
     .oneOf(['INCOME', 'EXPENSE'], 'Invalid transaction type'),
 });
+
+const errorStyle = { marginTop: '4px', fontSize: '12px', color: 'var(--expense)' };
 
 const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
   const [categories, setCategories] = useState([]);
@@ -53,23 +55,19 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    setValue,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
+      date: formatDateForInput(),
       transaction_type: 'EXPENSE',
       ...initialData,
-      // Ensure category is set to id if initialData.category is an object
       category: initialData?.category?.id || initialData?.category || '',
     },
   });
 
-  // If initialData changes (edit mode), update the form values
   useEffect(() => {
     if (initialData && initialData.id) {
-      // Ensure date is in YYYY-MM-DD format for the date input
-      const formattedDate = parseDate(initialData.date) || new Date().toISOString().split('T')[0];
+      const formattedDate = formatDateForDisplay(initialData.date);
       reset({
         ...initialData,
         date: formattedDate,
@@ -78,7 +76,6 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
     }
   }, [initialData, reset]);
 
-  // Fetch categories from API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -89,6 +86,7 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
         }
       } catch (error) {
         console.error('Failed to fetch categories:', error);
+        toast.error('Failed to load categories');
       } finally {
         setLoadingCategories(false);
       }
@@ -98,149 +96,118 @@ const TransactionForm = ({ onSubmit, initialData = {}, onCancel }) => {
   }, []);
 
   const handleFormSubmit = async (data) => {
-    if (!data.category) {
-      alert('Please select a category');
-      return;
-    }
     try {
-      // Ensure date is properly formatted as YYYY-MM-DD
       const formattedDate = parseDate(data.date);
       if (!formattedDate) {
-        alert('Invalid date format. Please use YYYY-MM-DD format.');
+        toast.error('Invalid date format. Please use DD-MM-YYYY format.');
         return;
       }
-      
-      // Transform data to match backend expectations
+
       const transformedData = {
         ...data,
         date: formattedDate,
-        category_id: Number(data.category), // Send category_id for backend
+        category_id: Number(data.category),
         transaction_type: data.transaction_type,
       };
-      delete transformedData.category; // Remove category field
+      delete transformedData.category;
       await onSubmit(transformedData);
       reset();
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast.error('Failed to save transaction');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
-        <label htmlFor="transaction_type" className="block text-sm font-medium text-[var(--text-primary)]">
-          Type
-        </label>
-        <select
-          {...register('transaction_type')}
-          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
-        >
-          <option value="EXPENSE">Expense</option>
-          <option value="INCOME">Income</option>
-        </select>
-        {errors.transaction_type && (
-          <p className="mt-1 text-sm text-[var(--expense)]">{errors.transaction_type.message}</p>
-        )}
+        <label htmlFor="transaction_type" className="field-label">Type</label>
+        <div className={`field field--select${errors.transaction_type ? ' error' : ''}`}>
+          <select {...register('transaction_type')} id="transaction_type">
+            <option value="EXPENSE">Expense</option>
+            <option value="INCOME">Income</option>
+          </select>
+        </div>
+        {errors.transaction_type && <p style={errorStyle}>{errors.transaction_type.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-[var(--text-primary)]">
-          Amount
-        </label>
-        <div className="mt-1 relative rounded-md shadow-[var(--card-shadow)]">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="text-[var(--text-secondary)] sm:text-sm">$</span>
-          </div>
+        <label htmlFor="amount" className="field-label">Amount</label>
+        <div className={`field${errors.amount ? ' error' : ''}`}>
+          <span style={{ color: 'var(--text-muted)', marginRight: '4px' }}>$</span>
           <input
             type="number"
             step="0.01"
+            id="amount"
             {...register('amount')}
-            className="block w-full pl-7 rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
             placeholder="0.00"
           />
         </div>
-        {errors.amount && (
-          <p className="mt-1 text-sm text-[var(--expense)]">{errors.amount.message}</p>
-        )}
+        {errors.amount && <p style={errorStyle}>{errors.amount.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)]">
-          Description
-        </label>
-        <input
-          type="text"
-          {...register('description')}
-          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
-          placeholder="Enter transaction description"
-        />
-        {errors.description && (
-          <p className="mt-1 text-sm text-[var(--expense)]">{errors.description.message}</p>
-        )}
+        <label htmlFor="description" className="field-label">Description</label>
+        <div className={`field${errors.description ? ' error' : ''}`}>
+          <input
+            type="text"
+            id="description"
+            {...register('description')}
+            placeholder="Enter transaction description"
+          />
+        </div>
+        {errors.description && <p style={errorStyle}>{errors.description.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="category" className="block text-sm font-medium text-[var(--text-primary)]">
-          Category
-        </label>
-        <select
-          {...register('category', { required: true })}
-          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
-          disabled={loadingCategories}
-        >
-          <option value="">Select a category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        {errors.category && (
-          <p className="mt-1 text-sm text-[var(--expense)]">{errors.category.message}</p>
-        )}
+        <label htmlFor="category" className="field-label">Category</label>
+        <div className={`field field--select${errors.category ? ' error' : ''}`}>
+          <select {...register('category')} id="category" disabled={loadingCategories}>
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        {errors.category && <p style={errorStyle}>{errors.category.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-[var(--text-primary)]">
-          Date
-        </label>
-        <input
-          type="text"
-          {...register('date')}
-          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
-          placeholder="DD-MM-YYYY (e.g., 08-09-2025)"
-          autoComplete="off"
-        />
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">
+        <label htmlFor="date" className="field-label">Date</label>
+        <div className={`field${errors.date ? ' error' : ''}`}>
+          <input
+            type="text"
+            id="date"
+            {...register('date')}
+            placeholder="DD-MM-YYYY (e.g., 08-09-2025)"
+            autoComplete="off"
+          />
+        </div>
+        <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-muted)' }}>
           Format: DD-MM-YYYY (e.g., 08-09-2025 for August 9th, 2025)
         </p>
-        {errors.date && (
-          <p className="mt-1 text-sm text-[var(--expense)]">{errors.date.message}</p>
-        )}
+        {errors.date && <p style={errorStyle}>{errors.date.message}</p>}
       </div>
 
-      <div className="flex gap-2 pt-4">
+      <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
         {onCancel && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            className="flex-1"
-          >
+          <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ flex: 1 }}>
             Cancel
-          </Button>
+          </button>
         )}
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          className="flex-1"
+          className="btn btn-primary"
+          style={{ flex: 1 }}
           disabled={isSubmitting || loadingCategories}
         >
           {isSubmitting ? 'Saving...' : (initialData && initialData.id) ? 'Update Transaction' : 'Add Transaction'}
-        </Button>
+        </button>
       </div>
     </form>
   );
 };
 
-export default TransactionForm; 
+export default TransactionForm;

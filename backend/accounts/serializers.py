@@ -20,9 +20,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name', 'phone_number',
             'date_of_birth', 'profile_picture', 'currency_preference', 'timezone', 'settings',
-            'is_email_verified', 'is_active', 'password', 'confirm_password'
+            'is_email_verified', 'is_active', 'date_joined', 'last_login',
+            'password', 'confirm_password'
         ]
-        read_only_fields = ('id', 'settings', 'is_email_verified', 'is_active')
+        read_only_fields = ('id', 'settings', 'is_email_verified', 'is_active', 'date_joined', 'last_login')
+
+    def validate_email(self, value):
+        user = self.instance
+        if user and User.objects.filter(email=value).exclude(pk=user.pk).exists():
+            raise serializers.ValidationError('A user with this email already exists.')
+        return value
 
     def validate(self, data):
         # Check if password and confirm_password match
@@ -65,6 +72,19 @@ class UserSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'profile_picture']
+
+    def validate_email(self, value):
+        user = self.instance
+        if user and User.objects.filter(email=value).exclude(pk=user.pk).exists():
+            raise serializers.ValidationError('A user with this email already exists.')
+        return value
+
 
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)

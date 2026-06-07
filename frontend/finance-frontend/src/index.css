@@ -292,6 +292,23 @@ h1, h2, h3, h4 {
   font: inherit;
   width: 100%;
 }
+.field--select,
+.field:has(select) {
+  height: auto;
+  min-height: 48px;
+  overflow: visible;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.field select {
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+.field select option {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
 .field input::placeholder,
 .field textarea::placeholder { color: var(--text-muted); }
 .field-label {
@@ -521,10 +538,35 @@ input, select, textarea {
 /* ============================================================
    Dashboard
    ============================================================ */
-.dashboard-page {
-  max-width: 1280px;
-  margin: 0 auto;
+.page-container {
   width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.dashboard-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.profile-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.reports-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .profile-layout-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dashboard-hero {

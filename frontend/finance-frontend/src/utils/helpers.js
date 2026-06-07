@@ -1,4 +1,4 @@
-import { format, parseISO, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from 'date-fns';
 import { getCssVar, getCategoryColorByIndex } from './chartTheme';
 
 // Format currency with 2 decimal places
@@ -38,6 +38,48 @@ export const getPreviousMonthRange = () => {
     end: format(endOfMonth(previousMonth), 'yyyy-MM-dd'),
   };
 };
+
+export const getDateRangeForTimeRange = (timeRange) => {
+  const now = new Date();
+  switch (timeRange) {
+    case 'current_month':
+      return {
+        start: format(startOfMonth(now), 'yyyy-MM-dd'),
+        end: format(endOfMonth(now), 'yyyy-MM-dd'),
+      };
+    case 'previous_month': {
+      const previousMonth = subMonths(now, 1);
+      return {
+        start: format(startOfMonth(previousMonth), 'yyyy-MM-dd'),
+        end: format(endOfMonth(previousMonth), 'yyyy-MM-dd'),
+      };
+    }
+    case 'current_year':
+      return {
+        start: format(startOfYear(now), 'yyyy-MM-dd'),
+        end: format(endOfYear(now), 'yyyy-MM-dd'),
+      };
+    case 'all_time':
+      return { start: null, end: null };
+    default:
+      return {
+        start: format(startOfMonth(now), 'yyyy-MM-dd'),
+        end: format(endOfMonth(now), 'yyyy-MM-dd'),
+      };
+  }
+};
+
+export const filterTransactionsByTimeRange = (transactions, timeRange) => {
+  const { start, end } = getDateRangeForTimeRange(timeRange);
+  if (!start && !end) return transactions;
+  return transactions.filter((t) => filterByDateRange(t, start, end));
+};
+
+export const isIncomeTransaction = (transaction) =>
+  transaction.transaction_type === 'INCOME';
+
+export const isExpenseTransaction = (transaction) =>
+  transaction.transaction_type === 'EXPENSE';
 
 // Group transactions by category
 export const groupByCategory = (transactions) => {
