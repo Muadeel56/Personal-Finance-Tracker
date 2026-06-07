@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
-
-const CAT_COLORS = ['#6366F1','#10B981','#F43F5E','#F59E0B','#8B5CF6','#0EA5E9','#14B8A6','#F97316'];
-const CAT_BG = ['rgba(99,102,241,0.15)','rgba(16,185,129,0.15)','rgba(244,63,94,0.15)','rgba(245,158,11,0.15)','rgba(139,92,246,0.15)','rgba(14,165,233,0.15)','rgba(20,184,166,0.15)','rgba(249,115,22,0.15)'];
+import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon, DocumentArrowDownIcon, ClipboardDocumentListIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import CategoryIcon from '../../categories/CategoryIcon';
+import { getCategoryColorByIndex, getCategoryBgByIndex } from '../../../utils/chartTheme';
 
 const fmtAmt  = (n) => new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(n));
 const fmtDate = (d) => { try { return format(typeof d === 'string' ? parseISO(d) : d, 'MMM d, yyyy'); } catch { return d; } };
@@ -49,7 +48,7 @@ const TransactionList = ({
   if (transactions.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
+        <ClipboardDocumentListIcon className="h-10 w-10 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>No transactions found</h3>
         <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Try adjusting the filters or add a new transaction.</p>
       </div>
@@ -104,8 +103,8 @@ const TransactionList = ({
           <tbody>
             {transactions.map((txn, i) => {
               const isIncome = txn.transaction_type === 'income' || Number(txn.amount) > 0;
-              const color = CAT_COLORS[i % CAT_COLORS.length];
-              const bg = CAT_BG[i % CAT_BG.length];
+              const color = getCategoryColorByIndex(i);
+              const bg = getCategoryBgByIndex(i);
               const isSelected = selected.has(txn.id);
               return (
                 <tr key={txn.id}
@@ -123,8 +122,14 @@ const TransactionList = ({
                   </td>
                   <td style={{ padding: '11px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div className="cat-ic" style={{ background: bg, color, width: '32px', height: '32px', borderRadius: '9px', fontSize: '14px' }}>
-                        {txn.category?.icon || (isIncome ? '↑' : '↓')}
+                      <div className="cat-ic" style={{ background: bg, color, width: '32px', height: '32px', borderRadius: '9px' }}>
+                        {txn.category?.icon ? (
+                          <CategoryIcon icon={txn.category.icon} isIncome={isIncome} className="h-4 w-4" />
+                        ) : isIncome ? (
+                          <ArrowUpIcon className="h-4 w-4" />
+                        ) : (
+                          <ArrowDownIcon className="h-4 w-4" />
+                        )}
                       </div>
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{txn.description}</div>

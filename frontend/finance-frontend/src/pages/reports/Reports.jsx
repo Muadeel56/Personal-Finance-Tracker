@@ -1,4 +1,11 @@
 import { useState } from 'react';
+import {
+  ChartBarIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  BanknotesIcon,
+  CurrencyDollarIcon,
+} from '@heroicons/react/24/outline';
 import { useTransactions } from '../../contexts/TransactionContext';
 
 const fmt = (n) => `PKR ${Number(n).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -36,7 +43,7 @@ const Reports = () => {
     padding: '7px 14px', borderRadius: '9px', fontSize: '13px', fontWeight: 600,
     fontFamily: 'var(--font-display)', border: 'none', cursor: 'pointer',
     background: active ? 'var(--accent-grad)' : 'transparent',
-    color: active ? '#1A1206' : 'var(--text-secondary)',
+    color: active ? 'var(--on-accent)' : 'var(--text-secondary)',
     transition: 'all 0.15s',
   });
 
@@ -77,7 +84,7 @@ const Reports = () => {
 
       {transactions.length === 0 ? (
         <div className="card" style={{ padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '52px', marginBottom: '14px' }}>📊</div>
+          <ChartBarIcon className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No data yet</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Add transactions to see reports.</p>
         </div>
@@ -88,16 +95,18 @@ const Reports = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                 {[
-                  { label: 'Total Income', value: fmt(income), icon: '📈', iconBg: 'var(--income-muted)', color: 'var(--income)' },
-                  { label: 'Total Expenses', value: fmt(expenses), icon: '📉', iconBg: 'var(--expense-muted)', color: 'var(--expense)' },
-                  { label: 'Net Income', value: fmt(netIncome), icon: netIncome >= 0 ? '💰' : '💸', iconBg: netIncome >= 0 ? 'var(--income-muted)' : 'var(--expense-muted)', color: netIncome >= 0 ? 'var(--income)' : 'var(--expense)' },
+                  { label: 'Total Income', value: fmt(income), Icon: ArrowTrendingUpIcon, iconBg: 'var(--income-muted)', color: 'var(--income)' },
+                  { label: 'Total Expenses', value: fmt(expenses), Icon: ArrowTrendingDownIcon, iconBg: 'var(--expense-muted)', color: 'var(--expense)' },
+                  { label: 'Net Income', value: fmt(netIncome), Icon: netIncome >= 0 ? BanknotesIcon : CurrencyDollarIcon, iconBg: netIncome >= 0 ? 'var(--income-muted)' : 'var(--expense-muted)', color: netIncome >= 0 ? 'var(--income)' : 'var(--expense)' },
                 ].map((c) => (
                   <div key={c.label} className="card" style={{ padding: '20px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <div className="t-label dim" style={{ marginBottom: '6px' }}>{c.label}</div>
                       <div className="num" style={{ fontSize: '22px', fontWeight: 700, color: c.color }}>{c.value}</div>
                     </div>
-                    <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: c.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>{c.icon}</div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: c.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <c.Icon className="h-5 w-5" style={{ color: c.color }} />
+                    </div>
                   </div>
                 ))}
               </div>

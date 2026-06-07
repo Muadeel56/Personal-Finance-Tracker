@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, EyeDropperIcon } from '@heroicons/react/24/outline';
+import {
+  CATEGORY_ICON_OPTIONS,
+  DEFAULT_EXPENSE_ICON,
+  DEFAULT_INCOME_ICON,
+  getCategoryIconLabel,
+} from '../../utils/categoryIcons';
+import CategoryIcon from './CategoryIcon';
 
 const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     icon: '',
-    color: '#10B981',
+    color: '#059669',
     is_income: false,
-    parent: null
+    parent: null,
   });
   const [errors, setErrors] = useState({});
   const [showColorPicker, setShowColorPicker] = useState(false);
 
   const predefinedColors = [
-    '#10B981', '#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6',
-    '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
-  ];
-
-  const predefinedIcons = [
-    '💰', '💸', '🍔', '🚗', '🏠', '💊', '🎬', '🛍️', '✈️', '🎓',
-    '🏥', '⚡', '📱', '💻', '🎮', '🏋️', '🎨', '📚', '🎵', '🎪'
+    '#059669', '#E11D48', '#D97706', '#7C3AED', '#9333EA',
+    '#DB2777', '#65A30D', '#EA580C', '#CA8A04', '#BE185D',
   ];
 
   useEffect(() => {
@@ -29,18 +31,18 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
         name: category.name || '',
         description: category.description || '',
         icon: category.icon || '',
-        color: category.color || '#10B981',
+        color: category.color || '#059669',
         is_income: category.is_income || false,
-        parent: category.parent || null
+        parent: category.parent || null,
       });
     } else {
       setFormData({
         name: '',
         description: '',
         icon: '',
-        color: '#10B981',
+        color: '#059669',
         is_income: false,
-        parent: null
+        parent: null,
       });
     }
     setErrors({});
@@ -48,13 +50,13 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -85,25 +87,39 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
   };
 
   const handleColorSelect = (color) => {
-    setFormData(prev => ({ ...prev, color }));
+    setFormData((prev) => ({ ...prev, color }));
     setShowColorPicker(false);
   };
 
-  const handleIconSelect = (icon) => {
-    setFormData(prev => ({ ...prev, icon }));
+  const handleIconSelect = (iconId) => {
+    setFormData((prev) => ({ ...prev, icon: iconId }));
   };
+
+  const previewIcon = formData.icon || (formData.is_income ? DEFAULT_INCOME_ICON : DEFAULT_EXPENSE_ICON);
+
+  const iconBtnStyle = (selected) => ({
+    width: '40px',
+    height: '40px',
+    borderRadius: '10px',
+    border: selected ? '2px solid var(--accent)' : '1px solid var(--border-subtle)',
+    background: selected ? 'var(--accent-glow)' : 'var(--surface-2)',
+    color: selected ? 'var(--accent)' : 'var(--text-secondary)',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'border-color 0.15s, background 0.15s, color 0.15s',
+  });
 
   if (!isOpen) return null;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      {/* Backdrop */}
       <div
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
         onClick={onClose}
       />
 
-      {/* Modal panel */}
       <div
         style={{
           position: 'relative', zIndex: 1,
@@ -118,7 +134,6 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px' }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             {category ? 'Edit Category' : 'Create Category'}
@@ -129,7 +144,6 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Category Name */}
           <div>
             <label htmlFor="name" className="field-label">Category Name *</label>
             <div className={`field${errors.name ? ' error' : ''}`}>
@@ -147,7 +161,6 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
             )}
           </div>
 
-          {/* Description */}
           <div>
             <label htmlFor="description" className="field-label">Description</label>
             <div className={`field${errors.description ? ' error' : ''}`} style={{ height: 'auto', alignItems: 'flex-start', padding: '10px 14px' }}>
@@ -166,7 +179,6 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
             )}
           </div>
 
-          {/* Category Type */}
           <div>
             <label className="field-label">Category Type</label>
             <div style={{ display: 'flex', gap: '20px' }}>
@@ -175,7 +187,7 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
                   type="radio"
                   name="is_income"
                   checked={!formData.is_income}
-                  onChange={() => setFormData(prev => ({ ...prev, is_income: false }))}
+                  onChange={() => setFormData((prev) => ({ ...prev, is_income: false }))}
                   style={{ accentColor: 'var(--accent)', marginRight: '8px' }}
                 />
                 <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Expense</span>
@@ -185,7 +197,7 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
                   type="radio"
                   name="is_income"
                   checked={formData.is_income}
-                  onChange={() => setFormData(prev => ({ ...prev, is_income: true }))}
+                  onChange={() => setFormData((prev) => ({ ...prev, is_income: true }))}
                   style={{ accentColor: 'var(--accent)', marginRight: '8px' }}
                 />
                 <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Income</span>
@@ -193,7 +205,6 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
             </div>
           </div>
 
-          {/* Color Selection */}
           <div>
             <label className="field-label">Color</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -231,40 +242,47 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
             )}
           </div>
 
-          {/* Icon Selection */}
           <div>
             <label className="field-label">Icon</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '8px', maxHeight: '128px', overflowY: 'auto' }}>
-              {predefinedIcons.map((icon) => (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(6, 1fr)',
+              gap: '8px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              padding: '4px',
+            }}>
+              {CATEGORY_ICON_OPTIONS.map(({ id, label, Icon }) => (
                 <button
-                  key={icon}
+                  key={id}
                   type="button"
-                  onClick={() => handleIconSelect(icon)}
-                  style={
-                    formData.icon === icon
-                      ? { width: '32px', height: '32px', borderRadius: '8px', border: '2px solid var(--accent)', background: 'var(--accent-glow)', fontSize: '18px', cursor: 'pointer' }
-                      : { width: '32px', height: '32px', borderRadius: '8px', border: '2px solid var(--border-subtle)', background: 'none', fontSize: '18px', cursor: 'pointer' }
-                  }
+                  title={label}
+                  aria-label={label}
+                  onClick={() => handleIconSelect(id)}
+                  style={iconBtnStyle(formData.icon === id)}
                 >
-                  {icon}
+                  <Icon className="h-5 w-5" />
                 </button>
               ))}
             </div>
             {formData.icon && (
               <p style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                Selected icon: {formData.icon}
+                Selected: {getCategoryIconLabel(formData.icon)}
               </p>
             )}
           </div>
 
-          {/* Preview */}
           <div style={{ padding: '16px', background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
             <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', marginTop: 0 }}>Preview</h4>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div
-                style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', backgroundColor: formData.color, flexShrink: 0 }}
+                style={{
+                  width: '40px', height: '40px', borderRadius: '12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: `${formData.color}22`, color: formData.color, flexShrink: 0,
+                }}
               >
-                {formData.icon || (formData.is_income ? '💰' : '💸')}
+                <CategoryIcon icon={previewIcon} isIncome={formData.is_income} className="h-5 w-5" />
               </div>
               <div style={{ marginLeft: '12px' }}>
                 <p style={{ fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
@@ -277,7 +295,6 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
             <button type="button" onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>
               Cancel

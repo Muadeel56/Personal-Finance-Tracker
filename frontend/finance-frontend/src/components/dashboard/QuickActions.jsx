@@ -14,28 +14,28 @@ const QuickActions = () => {
     {
       name: 'Add Income',
       icon: ArrowUpIcon,
-      color: 'bg-green-500',
+      color: 'bg-[var(--income)]',
       href: '/transactions/add?type=income',
       description: 'Record new income'
     },
     {
       name: 'Add Expense',
       icon: ArrowDownIcon,
-      color: 'bg-red-500',
+      color: 'bg-[var(--expense)]',
       href: '/transactions/add?type=expense',
       description: 'Record new expense'
     },
     {
       name: 'View Reports',
       icon: ChartBarIcon,
-      color: 'bg-blue-500',
+      color: 'bg-[var(--accent)]',
       href: '/reports',
       description: 'Financial insights'
     },
     {
       name: 'Manage Budget',
       icon: BanknotesIcon,
-      color: 'bg-purple-500',
+      color: 'bg-[var(--info)]',
       href: '/budget',
       description: 'Budget settings'
     }
@@ -47,18 +47,18 @@ const QuickActions = () => {
         <Link
           key={action.name}
           to={action.href}
-          className="group relative flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-lg hover:bg-white/20 transition-all duration-200"
+          className="group relative flex items-center gap-2 bg-[var(--surface-1)]/10 backdrop-blur-sm px-3 py-2 rounded-lg hover:bg-[var(--surface-1)]/20 transition-all duration-200"
           title={action.description}
         >
           <div className={`w-8 h-8 ${action.color} rounded-lg flex items-center justify-center`}>
-            <action.icon className="w-4 h-4 text-white" />
+            <action.icon className="w-4 h-4 text-[var(--surface-1)]" />
           </div>
-          <span className="text-sm font-medium text-white hidden lg:block">
+          <span className="text-sm font-medium text-[var(--surface-1)] hidden lg:block">
             {action.name}
           </span>
           
           {/* Tooltip for mobile */}
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none lg:hidden">
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-[var(--surface-1)] text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none lg:hidden">
             {action.description}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
           </div>

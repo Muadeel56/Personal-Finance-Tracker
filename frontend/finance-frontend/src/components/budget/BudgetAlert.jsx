@@ -15,33 +15,33 @@ const BudgetAlert = ({ category, progressPercentage }) => {
         icon: ExclamationTriangleIcon,
         title: 'Budget Exceeded!',
         message: `You've exceeded your ${category.name} budget by $${Math.abs(category.budget - category.spent).toLocaleString()}`,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50',
+        color: 'text-[var(--expense)]',
+        bgColor: 'bg-[var(--expense-muted)]',
         borderColor: 'border-red-200'
       },
       warning: {
         icon: ExclamationTriangleIcon,
         title: 'Budget Warning',
         message: `You've used ${progressPercentage.toFixed(0)}% of your ${category.name} budget`,
-        color: 'text-orange-600',
-        bgColor: 'bg-orange-50',
-        borderColor: 'border-orange-200'
+        color: 'text-[var(--warning)]',
+        bgColor: 'bg-[var(--warning-muted)]',
+        borderColor: 'border-[var(--border-subtle)]'
       },
       caution: {
         icon: ExclamationTriangleIcon,
         title: 'Budget Caution',
         message: `You're approaching your ${category.name} budget limit`,
-        color: 'text-yellow-600',
-        bgColor: 'bg-yellow-50',
+        color: 'text-[var(--warning)]',
+        bgColor: 'bg-[var(--warning-muted)]',
         borderColor: 'border-yellow-200'
       },
       good: {
         icon: CheckCircleIcon,
         title: 'On Track',
         message: `Your ${category.name} budget is well managed`,
-        color: 'text-green-600',
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200'
+        color: 'text-[var(--income)]',
+        bgColor: 'bg-[var(--income-muted)]',
+        borderColor: 'border-[var(--border-subtle)]'
       }
     };
     return configs[type];
@@ -58,10 +58,10 @@ const BudgetAlert = ({ category, progressPercentage }) => {
           <h3 className={`font-medium ${config.color} mb-1`}>
             {config.title}
           </h3>
-          <p className="text-sm text-gray-700 mb-2">
+          <p className="text-sm text-[var(--text-primary)] mb-2">
             {config.message}
           </p>
-          <div className="flex items-center justify-between text-xs text-gray-600">
+          <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
             <span>Budget: ${category.budget.toLocaleString()}</span>
             <span>Spent: ${category.spent.toLocaleString()}</span>
             <span>Remaining: ${(category.budget - category.spent).toLocaleString()}</span>

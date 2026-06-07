@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -36,7 +37,7 @@ const ForgotPassword = () => {
     return (
       <div style={pageStyle}>
         <div style={{ width: '100%', maxWidth: '420px', textAlign: 'center' }}>
-          <div style={{ fontSize: '52px', marginBottom: '16px' }}>📧</div>
+          <EnvelopeIcon className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--accent)' }} />
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
             Check your email
           </h1>
@@ -90,8 +91,9 @@ const ForgotPassword = () => {
         </div>
 
         <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-          <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
-            ← Back to login
+          <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <ArrowLeftIcon className="h-4 w-4" />
+            Back to login
           </Link>
         </p>
       </div>

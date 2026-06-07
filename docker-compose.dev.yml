@@ -35,7 +35,7 @@ services:
     environment:
       - REACT_APP_API_URL=http://localhost:8002
     volumes:
-      - ./frontend:/app
+      - ./frontend/finance-frontend:/app
       - /app/node_modules
     ports:
       - "5173:5173"

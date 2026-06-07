@@ -56,7 +56,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="account" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="account" className="block text-sm font-medium text-[var(--text-primary)]">
           Account
         </label>
         <select
@@ -65,7 +65,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           value={formData.account}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         >
           <option value="">Select an account</option>
           {accounts.filter(acc => acc && acc.id).map((account) => (
@@ -77,7 +77,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="category" className="block text-sm font-medium text-[var(--text-primary)]">
           Category
         </label>
         <select
@@ -86,7 +86,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           value={formData.category}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         >
           <option value="">Select a category</option>
           {categories.filter(cat => cat && cat.id).map((category) => (
@@ -98,7 +98,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="transaction_type" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="transaction_type" className="block text-sm font-medium text-[var(--text-primary)]">
           Type
         </label>
         <select
@@ -107,7 +107,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           value={formData.transaction_type}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         >
           <option value="">Select type</option>
           <option value="income">Income</option>
@@ -116,7 +116,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="amount" className="block text-sm font-medium text-[var(--text-primary)]">
           Amount
         </label>
         <input
@@ -128,12 +128,12 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           required
           step="0.01"
           min="0"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         />
       </div>
 
       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="date" className="block text-sm font-medium text-[var(--text-primary)]">
           Date
         </label>
         <input
@@ -143,12 +143,12 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           value={formData.date}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         />
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)]">
           Description
         </label>
         <input
@@ -158,7 +158,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           value={formData.description}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-[var(--border-subtle)] shadow-[var(--card-shadow)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"
         />
       </div>
 
@@ -166,13 +166,13 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-md shadow-[var(--card-shadow)] hover:bg-[var(--surface-2)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)]"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 text-sm font-medium text-[var(--on-accent)] bg-[var(--accent)] border border-transparent rounded-md shadow-[var(--card-shadow)] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)]"
         >
           {transaction ? 'Update' : 'Add'} Transaction
         </button>

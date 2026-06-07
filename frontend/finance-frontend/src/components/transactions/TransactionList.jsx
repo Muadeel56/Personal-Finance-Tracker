@@ -1,173 +1,63 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { 
-  PencilIcon, 
+import {
+  PencilIcon,
   TrashIcon,
   EyeIcon,
-  CheckIcon
+  CheckIcon,
+  ChartBarIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ArrowsRightLeftIcon,
+  TagIcon,
 } from '@heroicons/react/24/outline';
 
-const TransactionList = ({ 
-  transactions, 
-  viewMode, 
-  selectedTransactions, 
-  setSelectedTransactions, 
-  loading 
+const TransactionList = ({
+  transactions,
+  viewMode,
+  selectedTransactions,
+  setSelectedTransactions,
+  loading
 }) => {
-  const getTransactionIcon = (type, category) => {
-    if (type === 'INCOME') return '💰';
-    if (type === 'EXPENSE') return '💸';
-    if (type === 'TRANSFER') return '🔄';
-    
-    // Category-based icons
-    const categoryIcons = {
-      'Food': '🍽️',
-      'Transportation': '🚗',
-      'Housing': '🏠',
-      'Entertainment': '🎬',
-      'Shopping': '🛍️',
-      'Healthcare': '🏥',
-      'Education': '📚',
-      'Utilities': '⚡',
-      'Insurance': '🛡️',
-      'Investment': '📈',
-      'Salary': '💼',
-      'Freelance': '💻',
-      'Gift': '🎁',
-      'Travel': '✈️',
-      'Sports': '⚽',
-      'Pets': '🐕',
-      'Childcare': '👶',
-      'Taxes': '📋',
-      'Debt': '💳',
-      'Savings': '🏦'
-    };
-    
-    return categoryIcons[category] || '📊';
+  const getTransactionIcon = (type) => {
+    if (type === 'INCOME') return ArrowUpIcon;
+    if (type === 'EXPENSE') return ArrowDownIcon;
+    if (type === 'TRANSFER') return ArrowsRightLeftIcon;
+    return TagIcon;
   };
 
   const getAmountColor = (type, amount) => {
-    if (type === 'INCOME') return 'text-green-600';
-    if (type === 'EXPENSE') return 'text-red-600';
-    return 'text-gray-600';
+    if (type === 'INCOME') return 'text-[var(--income)]';
+    if (type === 'EXPENSE') return 'text-[var(--expense)]';
+    return 'text-[var(--text-primary)]';
   };
 
-  const getAmountPrefix = (type) => {
-    if (type === 'INCOME') return '+';
-    if (type === 'EXPENSE') return '-';
-    return '';
-  };
-
-  const handleSelectTransaction = (transactionId) => {
-    if (selectedTransactions.includes(transactionId)) {
-      setSelectedTransactions(selectedTransactions.filter(id => id !== transactionId));
+  const toggleSelection = (id) => {
+    const newSelection = new Set(selectedTransactions);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
     } else {
-      setSelectedTransactions([...selectedTransactions, transactionId]);
+      newSelection.add(id);
     }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedTransactions.length === transactions.length) {
-      setSelectedTransactions([]);
-    } else {
-      setSelectedTransactions(transactions.map(t => t.id));
-    }
+    setSelectedTransactions(newSelection);
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="spinner" />
       </div>
     );
   }
 
   if (transactions.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl">📊</span>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions found</h3>
-          <p className="text-gray-500">Try adjusting your filters or add a new transaction</p>
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto bg-[var(--surface-2)] rounded-full flex items-center justify-center mb-4">
+          <ChartBarIcon className="w-8 h-8 text-[var(--text-muted)]" />
         </div>
-      </div>
-    );
-  }
-
-  if (viewMode === 'list') {
-    return (
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center gap-4">
-            <input
-              type="checkbox"
-              checked={selectedTransactions.length === transactions.length && transactions.length > 0}
-              onChange={handleSelectAll}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              {selectedTransactions.length} of {transactions.length} selected
-            </span>
-          </div>
-        </div>
-
-        {/* Transaction List */}
-        <div className="divide-y divide-gray-200">
-          {transactions.map((transaction) => (
-            <div key={transaction.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <input
-                  type="checkbox"
-                  checked={selectedTransactions.includes(transaction.id)}
-                  onChange={() => handleSelectTransaction(transaction.id)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  {getTransactionIcon(transaction.transaction_type, transaction.category?.name)}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 truncate">
-                        {transaction.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>{transaction.category?.name || 'Uncategorized'}</span>
-                        <span>•</span>
-                        <span>{format(new Date(transaction.date), 'MMM d, yyyy')}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className={`font-semibold ${getAmountColor(transaction.transaction_type, transaction.amount)}`}>
-                        {getAmountPrefix(transaction.transaction_type)}${Math.abs(transaction.amount).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                    <EyeIcon className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                    <PencilIcon className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-red-400 hover:text-red-600 transition-colors">
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">No transactions found</h3>
+        <p className="text-[var(--text-muted)]">Try adjusting your filters or add a new transaction.</p>
       </div>
     );
   }
@@ -175,66 +65,96 @@ const TransactionList = ({
   if (viewMode === 'grid') {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {transactions.map((transaction) => (
-          <div key={transaction.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                {getTransactionIcon(transaction.transaction_type, transaction.category?.name)}
+        {transactions.map((transaction) => {
+          const Icon = getTransactionIcon(transaction.transaction_type);
+          const categoryName = typeof transaction.category === 'object'
+            ? transaction.category?.name
+            : transaction.category;
+
+          return (
+            <div
+              key={transaction.id}
+              className="bg-[var(--surface-1)] rounded-lg border border-[var(--border-subtle)] p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[var(--surface-2)] flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-[var(--text-secondary)]" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-[var(--text-primary)]">{transaction.description || 'Transaction'}</h4>
+                    <p className="text-sm text-[var(--text-muted)]">{categoryName}</p>
+                  </div>
+                </div>
+                <span className={`font-semibold ${getAmountColor(transaction.transaction_type, transaction.amount)}`}>
+                  {transaction.transaction_type === 'EXPENSE' ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
+                </span>
               </div>
-              <input
-                type="checkbox"
-                checked={selectedTransactions.includes(transaction.id)}
-                onChange={() => handleSelectTransaction(transaction.id)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-            </div>
-            
-            <h3 className="font-medium text-gray-900 mb-2 truncate">
-              {transaction.description}
-            </h3>
-            
-            <div className="space-y-2 text-sm text-gray-600 mb-4">
-              <div className="flex justify-between">
-                <span>Category:</span>
-                <span>{transaction.category?.name || 'Uncategorized'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date:</span>
-                <span>{format(new Date(transaction.date), 'MMM d')}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <p className={`text-lg font-semibold ${getAmountColor(transaction.transaction_type, transaction.amount)}`}>
-                {getAmountPrefix(transaction.transaction_type)}${Math.abs(transaction.amount).toFixed(2)}
-              </p>
-              <div className="flex items-center gap-1">
-                <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-                  <EyeIcon className="w-4 h-4" />
-                </button>
-                <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-                  <PencilIcon className="w-4 h-4" />
-                </button>
+              <div className="flex items-center justify-between text-sm text-[var(--text-muted)]">
+                <span>{format(new Date(transaction.date), 'MMM d, yyyy')}</span>
+                <div className="flex gap-2">
+                  <button className="p-1 hover:bg-[var(--surface-2)] rounded"><EyeIcon className="w-4 h-4" /></button>
+                  <button className="p-1 hover:bg-[var(--surface-2)] rounded"><PencilIcon className="w-4 h-4" /></button>
+                  <button className="p-1 hover:bg-[var(--surface-2)] rounded"><TrashIcon className="w-4 h-4" /></button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
 
-  // Calendar view (simplified)
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <span className="text-2xl">📅</span>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
-        <p className="text-gray-500">Calendar view coming soon!</p>
-      </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-[var(--border-subtle)]">
+        <thead className="bg-[var(--surface-2)]">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Date</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Description</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Category</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Amount</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-[var(--surface-1)] divide-y divide-[var(--border-subtle)]">
+          {transactions.map((transaction) => {
+            const Icon = getTransactionIcon(transaction.transaction_type);
+            const categoryName = typeof transaction.category === 'object'
+              ? transaction.category?.name
+              : transaction.category;
+
+            return (
+              <tr key={transaction.id} className="hover:bg-[var(--surface-2)]">
+                <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+                  {format(new Date(transaction.date), 'MMM d, yyyy')}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-[var(--text-secondary)]" />
+                    </div>
+                    <span className="text-sm font-medium text-[var(--text-primary)]">{transaction.description || 'Transaction'}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{categoryName}</td>
+                <td className={`px-4 py-3 text-sm font-semibold ${getAmountColor(transaction.transaction_type, transaction.amount)}`}>
+                  {transaction.transaction_type === 'EXPENSE' ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-2">
+                    <button className="p-1 hover:bg-[var(--surface-3)] rounded"><EyeIcon className="w-4 h-4" /></button>
+                    <button className="p-1 hover:bg-[var(--surface-3)] rounded"><PencilIcon className="w-4 h-4" /></button>
+                    <button className="p-1 hover:bg-[var(--surface-3)] rounded"><TrashIcon className="w-4 h-4" /></button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default TransactionList; 
+export default TransactionList;

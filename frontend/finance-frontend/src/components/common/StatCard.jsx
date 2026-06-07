@@ -13,13 +13,13 @@ const StatCard = ({ title, value, type, trend }) => {
   const getValueColor = () => {
     switch (type) {
       case 'income':
-        return 'text-green-600';
+        return 'text-[var(--income)]';
       case 'expense':
-        return 'text-red-600';
+        return 'text-[var(--expense)]';
       case 'percentage':
-        return value >= 0 ? 'text-green-600' : 'text-red-600';
+        return value >= 0 ? 'text-[var(--income)]' : 'text-[var(--expense)]';
       default:
-        return 'text-[var(--color-text)]';
+        return 'text-[var(--text-primary)]';
     }
   };
 
@@ -32,9 +32,9 @@ const StatCard = ({ title, value, type, trend }) => {
 
   const getTrendColor = () => {
     if (type === 'expense') {
-      return trend < 0 ? 'text-green-600' : 'text-red-600';
+      return trend < 0 ? 'text-[var(--income)]' : 'text-[var(--expense)]';
     }
-    return trend >= 0 ? 'text-green-600' : 'text-red-600';
+    return trend >= 0 ? 'text-[var(--income)]' : 'text-[var(--expense)]';
   };
 
   const getTrendIcon = () => {
@@ -53,8 +53,8 @@ const StatCard = ({ title, value, type, trend }) => {
   };
 
   return (
-    <div className="bg-[var(--color-card)] rounded-xl shadow-sm p-6 border border-[var(--color-border)]">
-      <h3 className="text-sm font-medium text-[var(--color-muted)]">{title}</h3>
+    <div className="bg-[var(--surface-1)] rounded-xl shadow-[var(--card-shadow)] p-6 border border-[var(--border-subtle)]">
+      <h3 className="text-sm font-medium text-[var(--text-secondary)]">{title}</h3>
       <div className="mt-2 flex items-baseline">
         <p className={`text-2xl font-semibold ${getValueColor()}`}>
           {formatValue()}

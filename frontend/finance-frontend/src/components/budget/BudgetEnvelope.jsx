@@ -5,17 +5,18 @@ import {
   PencilIcon,
   EyeIcon
 } from '@heroicons/react/24/outline';
+import CategoryIcon from '../categories/CategoryIcon';
 
 const BudgetEnvelope = ({ category, progressPercentage, progressColor }) => {
   const getStatusIcon = () => {
     if (progressPercentage >= 90) {
-      return <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />;
+      return <ExclamationTriangleIcon className="w-5 h-5 text-[var(--expense)]" />;
     } else if (progressPercentage >= 75) {
       return <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />;
     } else if (progressPercentage >= 100) {
-      return <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />;
+      return <ExclamationTriangleIcon className="w-5 h-5 text-[var(--expense)]" />;
     }
-    return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+    return <CheckCircleIcon className="w-5 h-5 text-[var(--income)]" />;
   };
 
   const getStatusText = () => {
@@ -26,21 +27,21 @@ const BudgetEnvelope = ({ category, progressPercentage, progressColor }) => {
   };
 
   const getStatusColor = () => {
-    if (progressPercentage >= 90) return 'text-red-600';
-    if (progressPercentage >= 75) return 'text-orange-600';
-    return 'text-green-600';
+    if (progressPercentage >= 90) return 'text-[var(--expense)]';
+    if (progressPercentage >= 75) return 'text-[var(--warning)]';
+    return 'text-[var(--income)]';
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div className="bg-[var(--surface-1)] rounded-xl shadow-[var(--card-shadow)] border border-[var(--border-subtle)] hover:shadow-md transition-shadow">
       {/* Envelope Header */}
-      <div className={`${category.color} rounded-t-xl p-4 text-white`}>
+      <div className={`${category.color} rounded-t-xl p-4 text-[var(--surface-1)]`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{category.icon}</span>
+            <CategoryIcon icon={category.icon} className="h-6 w-6" />
             <div>
               <h3 className="font-semibold text-lg">{category.name}</h3>
-              <p className="text-white/80 text-sm">Budget: ${category.budget.toLocaleString()}</p>
+              <p className="text-[var(--surface-1)]/80 text-sm">Budget: ${category.budget.toLocaleString()}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -55,17 +56,17 @@ const BudgetEnvelope = ({ category, progressPercentage, progressColor }) => {
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">Progress</span>
+            <span className="text-sm font-medium text-[var(--text-primary)]">Progress</span>
             <span className={`text-sm font-semibold ${getStatusColor()}`}>
               {progressPercentage.toFixed(0)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
+          <div className="w-full bg-[var(--surface-3)] rounded-full h-3">
             <div 
               className={`h-3 rounded-full transition-all duration-300 ${
-                progressPercentage >= 90 ? 'bg-red-500' :
-                progressPercentage >= 75 ? 'bg-orange-500' :
-                'bg-green-500'
+                progressPercentage >= 90 ? 'bg-[var(--expense)]' :
+                progressPercentage >= 75 ? 'bg-[var(--warning)]' :
+                'bg-[var(--income)]'
               }`}
               style={{ width: `${Math.min(progressPercentage, 100)}%` }}
             ></div>
@@ -74,16 +75,16 @@ const BudgetEnvelope = ({ category, progressPercentage, progressColor }) => {
 
         {/* Amount Details */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">Spent</p>
-            <p className="text-lg font-semibold text-gray-900">
+          <div className="text-center p-3 bg-[var(--surface-2)] rounded-lg">
+            <p className="text-sm text-[var(--text-secondary)]">Spent</p>
+            <p className="text-lg font-semibold text-[var(--text-primary)]">
               ${category.spent.toLocaleString()}
             </p>
           </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">Remaining</p>
+          <div className="text-center p-3 bg-[var(--surface-2)] rounded-lg">
+            <p className="text-sm text-[var(--text-secondary)]">Remaining</p>
             <p className={`text-lg font-semibold ${
-              category.remaining < 0 ? 'text-red-600' : 'text-gray-900'
+              category.remaining < 0 ? 'text-[var(--expense)]' : 'text-[var(--text-primary)]'
             }`}>
               ${category.remaining.toLocaleString()}
             </p>
@@ -92,20 +93,20 @@ const BudgetEnvelope = ({ category, progressPercentage, progressColor }) => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--accent)] text-[var(--surface-1)] rounded-lg hover:bg-[var(--accent-hover)] transition-colors text-sm font-medium">
             <EyeIcon className="w-4 h-4" />
             View Details
           </button>
-          <button className="flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+          <button className="flex items-center justify-center px-3 py-2 bg-[var(--surface-2)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--surface-3)] transition-colors">
             <PencilIcon className="w-4 h-4" />
           </button>
         </div>
 
         {/* Alert Message */}
         {progressPercentage >= 75 && (
-          <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <div className="mt-3 p-3 bg-[var(--warning-muted)] border border-[var(--border-subtle)] rounded-lg">
             <div className="flex items-start gap-2">
-              <ExclamationTriangleIcon className="w-4 h-4 text-orange-600 mt-0.5" />
+              <ExclamationTriangleIcon className="w-4 h-4 text-[var(--warning)] mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-orange-800">
                   {progressPercentage >= 100 ? 'Budget Exceeded!' : 'Budget Warning'}

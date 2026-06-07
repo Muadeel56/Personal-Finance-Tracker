@@ -122,13 +122,13 @@ const Transactions = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">Transactions</h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Transactions</h1>
         <button
           onClick={() => {
             setSelectedTransaction(null);
             setIsFormOpen(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--surface-1)] rounded-lg hover:bg-[var(--accent-hover)] transition-colors"
         >
           <PlusIcon className="h-5 w-5" />
           Add Transaction
@@ -176,8 +176,8 @@ const Transactions = () => {
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-lg rounded-xl bg-[var(--color-card)] p-6 shadow-lg">
-            <Dialog.Title className="text-lg font-medium text-[var(--color-text)] mb-4">
+          <Dialog.Panel className="mx-auto max-w-lg rounded-xl bg-[var(--surface-1)] p-6 shadow-lg">
+            <Dialog.Title className="text-lg font-medium text-[var(--text-primary)] mb-4">
               {selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}
             </Dialog.Title>
             <TransactionForm

@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { SparklesIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
-
-const SparkIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-  </svg>
-);
 
 const Login = () => {
   const navigate = useNavigate();
@@ -59,9 +54,9 @@ const Login = () => {
             width: '52px', height: '52px', borderRadius: '14px',
             background: 'var(--accent-grad)',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            color: '#1A1206', marginBottom: '16px',
+            color: 'var(--on-accent)', marginBottom: '16px',
           }}>
-            <SparkIcon />
+            <SparklesIcon className="h-6 w-6" />
           </div>
           <h1 style={{
             fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 700,
